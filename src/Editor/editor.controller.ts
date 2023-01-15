@@ -1,23 +1,30 @@
 import {
-    Controller, Post, Get, Delete, Param, Body
+    Controller, Post, Get, Delete, Param, Body, Req
 } from '@nestjs/common'
 import { EditorService } from './editor.service'
+import { AuthService } from '../Auth/auth.service'
 import {
     TCourseUpdateDTO, TCourseDTO, TLesson, TPage, TLessonUpdateDTO
 } from '../types/entities.types'
+import { Request } from 'express'
 
 @Controller('/editor')
 export class EditorController {
-    constructor(private readonly editorService: EditorService) {}
+    constructor(
+        private readonly editorService: EditorService,
+        private readonly authService: AuthService,
+    ) {}
 
     // Courses
     @Post('courses/create')
-    createCourse(@Body() course: TCourseDTO) {
-        return this.editorService.createCourse(course, '63b56b23a0a35ed0f2b97ed8')
+    async createCourse(@Body() course: TCourseDTO, @Req() request: Request) {
+        const userId = await this.authService.getUserId(request.cookies.token)
+        return this.editorService.createCourse(course, userId)
     }
 
     @Post('courses/:courseId')
     updateCourse(@Param('courseId') courseId, @Body() course: TCourseUpdateDTO) {
+        // check grants
         return this.editorService.updateCourse(courseId, course)
     }
 
@@ -27,18 +34,21 @@ export class EditorController {
     }
 
     @Get('courses')
-    getAvailableCourses() {
-        return this.editorService.getAvailableCourses('63b56b23a0a35ed0f2b97ed8')
+    async getAvailableCourses(@Req() request: Request) {
+        const userId = await this.authService.getUserId(request.cookies.token)
+        return this.editorService.getAvailableCourses(userId)
     }
 
     // Lessons
     @Post('lessons/create')
-    createLesson(@Body() lesson: TLesson) {
-        return this.editorService.createLesson(lesson, '63b56b23a0a35ed0f2b97ed8')
+    async createLesson(@Body() lesson: TLesson, @Req() request: Request) {
+        const userId = await this.authService.getUserId(request.cookies.token)
+        return this.editorService.createLesson(lesson, userId)
     }
 
     @Post('lessons/:lessonId')
     updateLesson(@Param('lessonId') lessonId, @Body() lesson: TLessonUpdateDTO) {
+        // check grants
         return this.editorService.updateLesson(lesson)
     }
 
@@ -49,12 +59,14 @@ export class EditorController {
 
     // Pages
     @Post('pages/create')
-    createPage(@Body() page: TPage) {
-        return this.editorService.createPage(page, '63b56b23a0a35ed0f2b97ed8')
+    async createPage(@Body() page: TPage, @Req() request: Request) {
+        const userId = await this.authService.getUserId(request.cookies.token)
+        return this.editorService.createPage(page, userId)
     }
 
     @Post('pages/:pageId')
     updatePage(@Param('pageId') pageId, @Body() page: TPage) {
+        // check grants
         return this.editorService.updatePage(pageId, page)
     }
 
@@ -65,6 +77,7 @@ export class EditorController {
 
     @Delete('pages/:pageId')
     deletePage(@Param('pageId') pageId) {
+        // check grants
         return this.editorService.removePage(pageId)
     }
 }

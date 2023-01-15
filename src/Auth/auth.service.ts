@@ -20,8 +20,11 @@ export class AuthService {
     ) {}
 
     async auth(email: string, password: string) {
-        // check email
         const auth = await this.authModel.findOne({ email })
+
+        if (!auth) {
+            throw new Error('Unauthorised')
+        }
         const hash = await bcrypt.hash(password, HASH_ROUNDS)
 
         return new Promise((resolve) => {
@@ -57,7 +60,7 @@ export class AuthService {
                 new this.tokenModel({
                     token,
                     userId: user._id,
-                    validTill: Date.now()
+                    validTill: new Date(Date.now() + (TOKEN_MAX_AGE * 1000))
                 }).save()
             ])
 
@@ -86,5 +89,10 @@ export class AuthService {
 
     logout(token: string) {
         return this.tokenModel.findOneAndDelete({ token })
+    }
+
+    async getUserId(token) {
+        const session = await this.tokenModel.findOne({ token })
+        return session.userId
     }
 }
