@@ -6,6 +6,7 @@ import { AuthService } from '../Auth/auth.service'
 import {
     TCourseUpdateDTO, TCourseDTO, TLesson, TPage, TLessonUpdateDTO
 } from '../types/entities.types'
+import { CourseDTO } from '../types/editor.classes'
 import { Request } from 'express'
 
 @Controller('/editor')
@@ -17,7 +18,7 @@ export class EditorController {
 
     // Courses
     @Post('courses/create')
-    async createCourse(@Body() course: TCourseDTO, @Req() request: Request) {
+    async createCourse(@Body() course: CourseDTO, @Req() request: Request) {
         const userId = await this.authService.getUserId(request.cookies.token)
         return this.editorService.createCourse(course, userId)
     }

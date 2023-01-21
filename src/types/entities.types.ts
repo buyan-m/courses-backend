@@ -41,7 +41,7 @@ export type TPage = {
         blocks: TEditorBlock[]
     },
     name: string,
-    lesson: string,
+    lessonId: string,
     position: number
 }
 

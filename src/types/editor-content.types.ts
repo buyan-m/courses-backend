@@ -2,6 +2,7 @@ export enum EditorBlockType {
     'paragraph' = 'paragraph',
     'heading' = 'heading',
     'audio' = 'audio',
+    'video' = 'video',
     'radio' = 'radio',
     'checkbox' = 'checkbox',
     'image' = 'image'
@@ -40,6 +41,13 @@ export type TEditorBlockAudio = {
     }
 }
 
+export type TEditorBlockVideo = {
+    type: EditorBlockType.video,
+    data: {
+        videoId: string
+    }
+}
+
 export type TEditorBlockRadio = {
     type: EditorBlockType.radio,
     data: {
@@ -60,4 +68,4 @@ export type TEditorBlockUnknown = {
 }
 
 export type TEditorBlock = TEditorBlockParagraph | TEditorBlockHeading | TEditorBlockImage |
-TEditorBlockAudio | TEditorBlockRadio | TEditorBlockCheckbox | TEditorBlockUnknown
+TEditorBlockAudio | TEditorBlockVideo | TEditorBlockRadio | TEditorBlockCheckbox | TEditorBlockUnknown

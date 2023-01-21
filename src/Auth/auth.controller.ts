@@ -4,32 +4,33 @@ import {
 import { AuthService } from './auth.service'
 import { Request, Response } from 'express'
 import { TOKEN_MAX_AGE } from '../constants/auth-token-age'
+import { AuthDto, RegisterDto } from '../types/auth.classes'
 
 @Controller()
 export class AuthController {
     constructor(private readonly authService: AuthService) {}
 
     @Post('/auth')
-    async auth(@Body() body, @Res() response: Response) {
+    async auth(@Body() body: AuthDto, @Res() response: Response) {
         try {
             const token = await this.authService.auth(body.email.toLowerCase(), body.password)
             response.cookie('token', token, { httpOnly: true, maxAge: TOKEN_MAX_AGE })
             response.send({})
         } catch (e) {
             response.statusCode = 401
-            response.send(e)
+            response.send({ message: [ e.toString() ] })
         }
     }
 
     @Post('/register')
-    async register(@Body() body, @Res() response: Response) {
+    async register(@Body() body: RegisterDto, @Res() response: Response) {
         try {
             const token = await this.authService.register(body.email.toLowerCase(), body.password, body.name)
             response.cookie('token', token, { httpOnly: true, maxAge: TOKEN_MAX_AGE })
             response.send({})
         } catch (e) {
             response.statusCode = 401
-            response.send(e)
+            response.send({ message: [ e.toString() ] })
         }
     }
 
@@ -39,7 +40,7 @@ export class AuthController {
             response.send({})
         }, (e) => {
             response.statusCode = 401
-            response.send(e)
+            response.send({ message: [ e.toString() ] })
         })
     }
 

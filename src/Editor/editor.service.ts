@@ -97,7 +97,7 @@ export class EditorService {
     }
 
     async createPage(page: TPage, userId: TUserId) {
-        const index = this.lessonModel.find({ lesson: page.lesson }).count()
+        const index = this.lessonModel.find({ lessonId: page.lessonId }).count()
         const createdPage = new this.pageModel({
             ...page,
             position: index

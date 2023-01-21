@@ -46,7 +46,7 @@ export class ViewerService {
 
     async getPage(pageId): Promise<TPageViewerDTO> {
         const page = await this.pageModel.findById(pageId)
-        const length = await this.pageModel.find({ lesson: page.lesson }).count()
+        const length = await this.pageModel.find({ lessonId: page.lessonId }).count()
 
         return {
             ...page.toObject(),
@@ -58,7 +58,7 @@ export class ViewerService {
         // todo remove bottleneck
         const page = await this.pageModel.findById(pageId).exec()
         const neededPage = await this.pageModel.findOne({
-            lesson: page.lesson,
+            lessonId: page.lessonId,
             position: page.position + 1
         }).exec()
 

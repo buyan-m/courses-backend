@@ -25,12 +25,11 @@ export class AuthService {
         if (!auth) {
             throw new Error('Unauthorised')
         }
-        const hash = await bcrypt.hash(password, HASH_ROUNDS)
 
-        return new Promise((resolve) => {
-            bcrypt.compare(password, hash, async (err, result) => {
+        return new Promise((resolve, reject) => {
+            bcrypt.compare(password, auth.password, async (err, result) => {
                 if (result) {
-                    const token = await bcrypt.hash(email, hash)
+                    const token = await bcrypt.hash(email, auth.password)
                     await new this.tokenModel({
                         token,
                         userId: auth.userId,
@@ -38,7 +37,7 @@ export class AuthService {
                     }).save()
                     resolve(token)
                 } else {
-                    throw new Error('Unauthorised')
+                    reject(new Error('Unauthorised'))
                 }
             })})
     }
