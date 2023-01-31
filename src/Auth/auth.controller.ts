@@ -14,7 +14,7 @@ export class AuthController {
     async auth(@Body() body: AuthDto, @Res() response: Response) {
         try {
             const token = await this.authService.auth(body.email.toLowerCase(), body.password)
-            response.cookie('token', token, { httpOnly: true, maxAge: TOKEN_MAX_AGE })
+            response.cookie('token', token, { httpOnly: true, maxAge: TOKEN_MAX_AGE * 1000 })
             response.send({})
         } catch (e) {
             response.statusCode = 401
