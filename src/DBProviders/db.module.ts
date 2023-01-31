@@ -5,6 +5,7 @@ import { lessonProvider } from './lesson.db.provider'
 import { pagesProvider } from './page.db.provider'
 import { userProvider } from './user.db.provider'
 import { grantProvider } from './grant.db.provider'
+import { progressProvider } from './progress.db.provider'
 import { databaseProvider } from './connection.db.provider'
 
 @Module({
@@ -15,7 +16,8 @@ import { databaseProvider } from './connection.db.provider'
         userProvider,
         grantProvider,
         authProvider,
-        tokenProvider
+        tokenProvider,
+        progressProvider
     ],
     providers: [
         databaseProvider,
@@ -25,7 +27,8 @@ import { databaseProvider } from './connection.db.provider'
         userProvider,
         grantProvider,
         authProvider,
-        tokenProvider
+        tokenProvider,
+        progressProvider
     ]
 })
 export class DBModule {}

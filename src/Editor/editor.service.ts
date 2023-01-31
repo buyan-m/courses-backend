@@ -14,6 +14,7 @@ import {
     TLessonId,
     TLessonUpdateDTO
 } from '../types/entities.types'
+import { CourseDTO, PageCreateDTO } from '../types/editor.classes'
 
 @Injectable()
 export class EditorService {
@@ -43,17 +44,30 @@ export class EditorService {
         return { courseId: createdCourse._id }
     }
 
-    updateCourse(courseId: TCourseId, course: TCourseUpdateDTO) {
-        return this.courseModel.findByIdAndUpdate(courseId, course)
+    async updateCourse(courseId: TCourseId, course: CourseDTO) {
+        await this.courseModel.findByIdAndUpdate(courseId, course)
+        return { courseId }
     }
 
     getCourse(courseId: TCourseId): Promise<TCourseDTO> {
         return Promise.all([
-            this.lessonModel.find<TLesson>({ courseId }),
-            this.courseModel.findById<TCourseDTO>( courseId )
+            this.lessonModel.find({ courseId })
+                .then(async (lessons) => {
+                    const ids = lessons.map(({ _id }) => _id)
+                    const pages = await this.pageModel.find<TPage>({ lessonId: { $in: ids } })
+                        .select('name lessonId position')
+                    return lessons.map((lesson) => {
+                        return {
+                            ...lesson.toObject(),
+                            // todo use Map
+                            pages: pages.filter(({ lessonId }) => lessonId === lesson._id.toString())
+                        }
+                    })
+                }),
+            this.courseModel.findById( courseId )
         ]).then(([ lessons, course ]) => {
             return {
-                name: course.name,
+                ...course.toObject(),
                 lessons
             }
         })
@@ -64,6 +78,7 @@ export class EditorService {
         return this.grantModel.find<TGrant>({ userId, objectType: TGrantObjectType['course'] })
             .then((els) => {
                 return Promise.all(els.map(({ objectId }) => this.courseModel.findById(objectId)))
+                    .then(courses => courses.filter((course) => course))
             })
     }
 
@@ -82,7 +97,7 @@ export class EditorService {
     }
 
     async updateLesson(lesson: TLessonUpdateDTO) {
-        return this.lessonModel.findByIdAndUpdate(lesson.id, lesson)
+        return this.lessonModel.findByIdAndUpdate(lesson._id, lesson)
     }
 
     getLesson(lessonId: TLessonId): Promise<TLesson> {
@@ -96,8 +111,8 @@ export class EditorService {
         }))
     }
 
-    async createPage(page: TPage, userId: TUserId) {
-        const index = this.lessonModel.find({ lessonId: page.lessonId }).count()
+    async createPage(page: PageCreateDTO, userId: TUserId) {
+        const index = await this.pageModel.find({ lessonId: page.lessonId }).count()
         const createdPage = new this.pageModel({
             ...page,
             position: index

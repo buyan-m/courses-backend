@@ -24,8 +24,16 @@ export type TUser = {
 export type TCourseDTO = {
     name: string
 }
+export type TLessonResponse = {
+    pages: Omit<TPage, 'structure'>[],
+    completed: boolean
+}
 
-export type TCourseUpdateDTO = TCourseDTO & {id: TCourseId}
+export type TCourseResponse = TCourseDTO & {
+    lessons: TLessonResponse[]
+}
+
+export type TCourseUpdateDTO = TCourseDTO & {_id: TCourseId}
 
 export type TLesson = {
     name: string,
@@ -33,7 +41,7 @@ export type TLesson = {
 }
 
 export type TLessonUpdateDTO = TLesson & {
-    id: TLessonId
+    _id: TLessonId
 }
 
 export type TPage = {
@@ -46,7 +54,10 @@ export type TPage = {
 }
 
 export type TPageViewerDTO = TPage & {
-    nextPageAvailable: boolean
+    nextPageAvailable: boolean,
+    progress: {
+        checked: boolean
+    }
 }
 
 export type TNextPage = {
@@ -63,4 +74,11 @@ export type TToken = {
     token: string,
     userId: TUserId,
     validTill: Date
+}
+
+export type TProgress = {
+    userId: TUserId,
+    objectId: TCourseId | TLessonId | TPageId,
+    objectType: TGrantObjectType,
+    checked: boolean
 }

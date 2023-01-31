@@ -3,10 +3,10 @@ import {
 } from '@nestjs/common'
 import { EditorService } from './editor.service'
 import { AuthService } from '../Auth/auth.service'
+import { TPage } from '../types/entities.types'
 import {
-    TCourseUpdateDTO, TCourseDTO, TLesson, TPage, TLessonUpdateDTO
-} from '../types/entities.types'
-import { CourseDTO } from '../types/editor.classes'
+    CourseDTO, LessonCreateDTO, LessonUpdateDTO, PageCreateDTO
+} from '../types/editor.classes'
 import { Request } from 'express'
 
 @Controller('/editor')
@@ -24,7 +24,7 @@ export class EditorController {
     }
 
     @Post('courses/:courseId')
-    updateCourse(@Param('courseId') courseId, @Body() course: TCourseUpdateDTO) {
+    updateCourse(@Param('courseId') courseId, @Body() course: CourseDTO) {
         // check grants
         return this.editorService.updateCourse(courseId, course)
     }
@@ -42,13 +42,13 @@ export class EditorController {
 
     // Lessons
     @Post('lessons/create')
-    async createLesson(@Body() lesson: TLesson, @Req() request: Request) {
+    async createLesson(@Body() lesson: LessonCreateDTO, @Req() request: Request) {
         const userId = await this.authService.getUserId(request.cookies.token)
         return this.editorService.createLesson(lesson, userId)
     }
 
     @Post('lessons/:lessonId')
-    updateLesson(@Param('lessonId') lessonId, @Body() lesson: TLessonUpdateDTO) {
+    updateLesson(@Param('lessonId') lessonId, @Body() lesson: LessonUpdateDTO) {
         // check grants
         return this.editorService.updateLesson(lesson)
     }
@@ -60,7 +60,7 @@ export class EditorController {
 
     // Pages
     @Post('pages/create')
-    async createPage(@Body() page: TPage, @Req() request: Request) {
+    async createPage(@Body() page: PageCreateDTO, @Req() request: Request) {
         const userId = await this.authService.getUserId(request.cookies.token)
         return this.editorService.createPage(page, userId)
     }
