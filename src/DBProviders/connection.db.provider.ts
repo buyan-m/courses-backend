@@ -1,7 +1,8 @@
 import * as mongoose from 'mongoose'
+const connectionPath = process.env.MONGO_CONNECTION_PATH
 
 export const databaseProvider = {
     provide: 'DATABASE_CONNECTION',
     useFactory: (): Promise<typeof mongoose> =>
-        mongoose.connect('mongodb://127.0.0.1:27017/primary')
+        mongoose.connect(connectionPath)
 }
