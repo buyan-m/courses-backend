@@ -1,7 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { Model } from 'mongoose'
 import {
-    TCourseUpdateDTO,
     TCourseDTO,
     TCourseId,
     TUserId,
@@ -139,5 +138,13 @@ export class EditorService {
 
     removePage(pageId) {
         return this.pageModel.findByIdAndRemove(pageId)
+    }
+
+    checkGrants(userId: string, entityId: string, entityType: TGrantObjectType) {
+        return this.grantModel.find({
+            userId,
+            objectId: entityId,
+            objectType: entityType
+        }).count()
     }
 }
