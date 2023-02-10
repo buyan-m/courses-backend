@@ -8,6 +8,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     environment: docker
+    outputs:
+      image: ${{ steps.image.outputs.image }}
     steps:
       - uses: actions/setup-node@v3
         with:
@@ -21,8 +23,12 @@ jobs:
         run: npm run build
 
       - name: create tag
+        id: image
+        run: echo image=$(date '+%Y-%m-%d_%H-%M') >> $GITHUB_OUTPUT
+
+      - name: create image name
         id: tag
-        run: echo tag=ghcr.io/${{ vars.DOCKER_USER }}/${{ vars.DOCKER_IMAGE_NAME }}:$(date '+%Y-%m-%d_%H-%M') >> $GITHUB_OUTPUT
+        run: echo tag=ghcr.io/${{ vars.DOCKER_USER }}/${{ vars.DOCKER_IMAGE_NAME }}:${{ steps.image.outputs.image }} >> $GITHUB_OUTPUT
 
       - name: docker build
         run: docker build -f .Dockerfile . -t ${{ steps.tag.outputs.tag }}
@@ -36,3 +42,14 @@ jobs:
 
       - name: docker push
         run: docker push ${{ steps.tag.outputs.tag }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    environment: deploy
+    needs: build
+    steps:
+      - run: echo "${{ secrets.SSH_KEY }}" >> ssh_key
+      - run: chmod 600 ssh_key
+      - run: ssh -o StrictHostKeyChecking=no -i ssh_key ${{ secrets.DROPLET }} "sed -i 's/^BACK_TAG=.*/BACK_TAG=${{needs.build.outputs.image}}/' ~/app/.env"
+      - run: ssh -o StrictHostKeyChecking=no -i ssh_key ${{ secrets.DROPLET }} "cd ~/app && docker compose up -d"
+      - run: rm ssh_key
