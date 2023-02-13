@@ -47,7 +47,7 @@ export class AuthService {
         const auth = await this.authModel.findOne({ email })
         if (!auth) {
             const hash = await bcrypt.hash(password, HASH_ROUNDS)
-            const user = await new this.userModel({ name })
+            const user = await new this.userModel({ name }).save()
             const token = await bcrypt.hash(email, hash)
             await Promise.all([
                 new this.authModel({
