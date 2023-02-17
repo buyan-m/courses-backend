@@ -1,4 +1,5 @@
 import { TEditorBlock } from './editor-content.types'
+import { roles } from '../constants/general-roles'
 
 export type TCourseId = string
 export type TLessonId = string
@@ -81,4 +82,9 @@ export type TProgress = {
     objectId: TCourseId | TLessonId | TPageId,
     objectType: TGrantObjectType,
     checked: boolean
+}
+
+export type TRole = {
+    userId: TUserId,
+    role: roles
 }

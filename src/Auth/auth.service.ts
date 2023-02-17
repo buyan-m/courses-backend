@@ -1,10 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { Model } from 'mongoose'
 import {
-    TAuth, TToken, TUser
+    TAuth, TRole, TToken, TUser
 } from '../types/entities.types'
 import * as bcrypt from 'bcrypt'
 import { TOKEN_MAX_AGE } from '../constants/auth-token-age'
+import { roles } from '../constants/general-roles'
 
 const HASH_ROUNDS = 3
 
@@ -17,6 +18,8 @@ export class AuthService {
         private tokenModel: Model<TToken>,
         @Inject('USER_MODEL')
         private userModel: Model<TUser>,
+        @Inject('ROLE_MODEL')
+        private roleModel: Model<TRole>,
     ) {}
 
     async auth(email: string, password: string) {
@@ -60,6 +63,11 @@ export class AuthService {
                     token,
                     userId: user._id,
                     validTill: new Date(Date.now() + (TOKEN_MAX_AGE * 1000))
+                }).save(),
+
+                new this.roleModel({
+                    userId: user._id,
+                    role: roles.guest
                 }).save()
             ])
 
@@ -83,7 +91,7 @@ export class AuthService {
             throw new Error('Unauthorised')
         }
 
-        return true
+        return session.userId
     }
 
     logout(token: string) {

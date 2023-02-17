@@ -8,19 +8,27 @@ import {
     CourseDTO, LessonCreateDTO, LessonUpdateDTO, PageCreateDTO
 } from '../types/editor.classes'
 import { Token } from '../utils/extractToken'
+import { roles as RolesEnum } from '../constants/general-roles'
 import { Response } from 'express'
+import { RoleService } from '../Role/role.service'
 
 @Controller('/editor')
 export class EditorController {
     constructor(
         private readonly editorService: EditorService,
         private readonly authService: AuthService,
+        private readonly roleService: RoleService,
     ) {}
 
     // Courses
     @Post('courses/create')
-    async createCourse(@Body() course: CourseDTO, @Token() token: string) {
+    async createCourse(@Body() course: CourseDTO, @Token() token: string, @Res() response: Response) {
         const userId = await this.authService.getUserId(token)
+        const roles = await this.roleService.getUserRoles(userId)
+        if (!roles.some(({ role }) => role === RolesEnum.user)) {
+            response.statusCode = 403
+            response.send({})
+        }
         return this.editorService.createCourse(course, userId)
     }
 
@@ -61,8 +69,9 @@ export class EditorController {
     @Post('lessons/create')
     async createLesson(@Body() lesson: LessonCreateDTO, @Token() token: string, @Res() response: Response) {
         const userId = await this.authService.getUserId(token)
+        const roles = await this.roleService.getUserRoles(userId)
         const grant = await this.editorService.checkGrants(userId, lesson.courseId, TGrantObjectType.course)
-        if (!grant) {
+        if (!grant || !roles.some(({ role }) => role === RolesEnum.user)) {
             response.statusCode = 403
             response.send({})
         }
@@ -100,8 +109,9 @@ export class EditorController {
     @Post('pages/create')
     async createPage(@Body() page: PageCreateDTO, @Token() token: string, @Res() response: Response) {
         const userId = await this.authService.getUserId(token)
+        const roles = await this.roleService.getUserRoles(userId)
         const grant = await this.editorService.checkGrants(userId, page.lessonId, TGrantObjectType.lesson)
-        if (!grant) {
+        if (!grant || !roles.some(({ role }) => role === RolesEnum.user)) {
             response.statusCode = 403
             response.send({})
         }

@@ -6,6 +6,7 @@ import { pagesProvider } from './page.db.provider'
 import { userProvider } from './user.db.provider'
 import { grantProvider } from './grant.db.provider'
 import { progressProvider } from './progress.db.provider'
+import { roleProvider } from './role.db.provider'
 import { databaseProvider } from './connection.db.provider'
 
 @Module({
@@ -17,6 +18,7 @@ import { databaseProvider } from './connection.db.provider'
         grantProvider,
         authProvider,
         tokenProvider,
+        roleProvider,
         progressProvider
     ],
     providers: [
@@ -28,6 +30,7 @@ import { databaseProvider } from './connection.db.provider'
         grantProvider,
         authProvider,
         tokenProvider,
+        roleProvider,
         progressProvider
     ]
 })

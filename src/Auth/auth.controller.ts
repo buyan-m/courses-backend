@@ -5,10 +5,14 @@ import { AuthService } from './auth.service'
 import { Request, Response } from 'express'
 import { TOKEN_MAX_AGE } from '../constants/auth-token-age'
 import { AuthDto, RegisterDto } from '../types/auth.classes'
+import { RoleService } from '../Role/role.service'
 
 @Controller()
 export class AuthController {
-    constructor(private readonly authService: AuthService) {}
+    constructor(
+        private readonly authService: AuthService,
+        private readonly roleService: RoleService
+    ) {}
 
     @Post('/auth')
     async auth(@Body() body: AuthDto, @Res() response: Response) {
@@ -35,13 +39,18 @@ export class AuthController {
     }
 
     @Get('/auth-check')
-    checkAuth(@Req() request: Request, @Res() response: Response) {
-        return this.authService.checkAuth(request.cookies.token).then(() => {
-            response.send({})
-        }, (e) => {
+    async checkAuth(@Req() request: Request, @Res() response: Response) {
+        try {
+            const userId = await this.authService.checkAuth(request.cookies.token)
+            const roles = await this.roleService.getUserRoles(userId)
+            response.send({
+                userId,
+                roles: roles.map(({ role }) => role)
+            })
+        } catch (e) {
             response.statusCode = 401
             response.send({ message: [ e.toString() ] })
-        })
+        }
     }
 
     @Get('/logout')
