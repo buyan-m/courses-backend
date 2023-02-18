@@ -24,7 +24,8 @@ export class AdminController {
             return
         }
         try {
-            return this.adminService.getEmailList(userId)
+            response.statusCode = 200
+            response.send(await this.adminService.getEmailList(userId))
         } catch (error) {
             response.statusCode = 403
             response.send({ message: [ error.toString() ] })
@@ -42,12 +43,14 @@ export class AdminController {
             return
         }
         try {
-            return this.adminService.approveEmail(userId, body.email)
+            await this.adminService.approveEmail(userId, body.email)
+            response.statusCode = 200
+            response.send({})
         } catch (error) {
             const errorText = error.toString()
-            if (errorText === 'Forbidden') {
+            if (errorText === 'Error: Forbidden') {
                 response.statusCode = 403
-            } else if (errorText === 'Not Found') {
+            } else if (errorText === 'Error: Not found') {
                 response.statusCode = 404
             }
 

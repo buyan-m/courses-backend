@@ -14,7 +14,7 @@ export class AdminService {
         private roleModel: Model<TRole>,
     ) {}
 
-    async getEmailList(userId: TUserId): Promise<unknown | string> {
+    async getEmailList(userId: TUserId): Promise<{ email: string, role: Roles }[] | string> {
         const role = await this.roleModel.findOne({ userId, role: Roles.admin })
         if (!role) {
             throw new Error('Forbidden')
@@ -32,16 +32,16 @@ export class AdminService {
             throw new Error('Forbidden')
         }
 
-        const { userId: guestUserId } = await this.authModel.findOne({ email })
-        if (!guestUserId) {
+        const auth = await this.authModel.findOne({ email })
+        if (!auth || !auth.userId) {
             throw new Error('Not found')
         }
 
         return this.roleModel.findOneAndUpdate({
-            userId: guestUserId,
+            userId: auth.userId,
             role: Roles.guest
         }, {
-            userId: guestUserId,
+            userId: auth.userId,
             role: Roles.user
         })
     }
