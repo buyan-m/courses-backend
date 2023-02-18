@@ -29,7 +29,7 @@ export class EditorController {
             response.statusCode = 403
             response.send({})
         }
-        return this.editorService.createCourse(course, userId)
+        response.send(await this.editorService.createCourse(course, userId))
     }
 
     @Post('courses/:courseId')
