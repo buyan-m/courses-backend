@@ -5,7 +5,7 @@ import {
 } from '../types/entities.types'
 import * as bcrypt from 'bcrypt'
 import { TOKEN_MAX_AGE } from '../constants/auth-token-age'
-import { roles } from '../constants/general-roles'
+import { Roles } from '../constants/general-roles'
 
 const HASH_ROUNDS = 3
 
@@ -67,7 +67,7 @@ export class AuthService {
 
                 new this.roleModel({
                     userId: user._id,
-                    role: roles.guest
+                    role: Roles.guest
                 }).save()
             ])
 

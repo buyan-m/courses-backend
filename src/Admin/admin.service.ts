@@ -3,7 +3,7 @@ import { Model } from 'mongoose'
 import {
     TAuth, TRole, TUserId
 } from '../types/entities.types'
-import { roles } from '../constants/general-roles'
+import { Roles } from '../constants/general-roles'
 
 @Injectable()
 export class AdminService {
@@ -14,16 +14,20 @@ export class AdminService {
         private roleModel: Model<TRole>,
     ) {}
 
-    async getEmailList(userId: TUserId): Promise<TRole[] | string> {
-        const role = await this.roleModel.findOne({ userId, role: roles.admin })
+    async getEmailList(userId: TUserId): Promise<unknown | string> {
+        const role = await this.roleModel.findOne({ userId, role: Roles.admin })
         if (!role) {
             throw new Error('Forbidden')
         }
-        return this.roleModel.find({ role: roles.guest })
+        const roles = await this.roleModel.find({ role: Roles.guest })
+        return Promise.all(roles.map((role) => this.authModel
+            .findOne({ userId: role.userId })
+            .select('email')
+            .then((auth) => ({ email: auth.email, role: role.role }))))
     }
 
     async approveEmail(userId: TUserId, email: string) {
-        const role = await this.roleModel.findOne({ userId, role: roles.admin })
+        const role = await this.roleModel.findOne({ userId, role: Roles.admin })
         if (!role) {
             throw new Error('Forbidden')
         }
@@ -35,10 +39,10 @@ export class AdminService {
 
         return this.roleModel.findOneAndUpdate({
             userId: guestUserId,
-            role: roles.guest
+            role: Roles.guest
         }, {
             userId: guestUserId,
-            role: roles.user
+            role: Roles.user
         })
     }
 }

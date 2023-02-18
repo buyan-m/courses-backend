@@ -8,7 +8,7 @@ import {
     CourseDTO, LessonCreateDTO, LessonUpdateDTO, PageCreateDTO
 } from '../types/editor.classes'
 import { Token } from '../utils/extractToken'
-import { roles as RolesEnum } from '../constants/general-roles'
+import { Roles } from '../constants/general-roles'
 import { Response } from 'express'
 import { RoleService } from '../Role/role.service'
 
@@ -25,7 +25,7 @@ export class EditorController {
     async createCourse(@Body() course: CourseDTO, @Token() token: string, @Res() response: Response) {
         const userId = await this.authService.getUserId(token)
         const roles = await this.roleService.getUserRoles(userId)
-        if (!roles.some(({ role }) => role === RolesEnum.user)) {
+        if (!roles.some(({ role }) => role === Roles.user)) {
             response.statusCode = 403
             response.send({})
         }
@@ -71,7 +71,7 @@ export class EditorController {
         const userId = await this.authService.getUserId(token)
         const roles = await this.roleService.getUserRoles(userId)
         const grant = await this.editorService.checkGrants(userId, lesson.courseId, TGrantObjectType.course)
-        if (!grant || !roles.some(({ role }) => role === RolesEnum.user)) {
+        if (!grant || !roles.some(({ role }) => role === Roles.user)) {
             response.statusCode = 403
             response.send({})
         }
@@ -111,7 +111,7 @@ export class EditorController {
         const userId = await this.authService.getUserId(token)
         const roles = await this.roleService.getUserRoles(userId)
         const grant = await this.editorService.checkGrants(userId, page.lessonId, TGrantObjectType.lesson)
-        if (!grant || !roles.some(({ role }) => role === RolesEnum.user)) {
+        if (!grant || !roles.some(({ role }) => role === Roles.user)) {
             response.statusCode = 403
             response.send({})
         }
