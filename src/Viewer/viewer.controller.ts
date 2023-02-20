@@ -13,8 +13,10 @@ export class ViewerController {
     constructor(private readonly viewerService: ViewerService, private readonly authService: AuthService) {}
 
     @Get('courses/featured')
-    getFeaturedCourses() {
-        return this.viewerService.searchCourse('c')
+    async getFeaturedCourses(@Req() request: Request) {
+        const userId = await this.authService.getUserId(request.cookies.token)
+        // todo: make a list of courses
+        return this.viewerService.getCourse('63f093f2fa45c64e433940b9', userId)
     }
 
     @Get('courses/search')
