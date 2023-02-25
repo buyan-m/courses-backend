@@ -45,4 +45,9 @@ export class CommonController {
         const file = createReadStream(resolve(__dirname, `../../uploads/${filename}`))
         return new StreamableFile(file)
     }
+
+    @Get('health-check')
+    healthCheck() {
+        return ('')
+    }
 }
