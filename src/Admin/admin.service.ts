@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { Model } from 'mongoose'
 import {
-    TAuth, TRole, TUserId
+    TAuth, TCourseDTO, TCourseUpdateDTO, TRole, TUserId
 } from '../types/entities.types'
 import { Roles } from '../constants/general-roles'
 
@@ -12,13 +12,20 @@ export class AdminService {
         private authModel: Model<TAuth>,
         @Inject('ROLE_MODEL')
         private roleModel: Model<TRole>,
+        @Inject('COURSE_MODEL')
+        private courseModel: Model<TCourseDTO>,
     ) {}
 
-    async getEmailList(userId: TUserId): Promise<{ email: string, role: Roles }[] | string> {
+    async checkGrants(userId) {
         const role = await this.roleModel.findOne({ userId, role: Roles.admin })
         if (!role) {
             throw new Error('Forbidden')
         }
+    }
+
+    async getEmailList(userId: TUserId): Promise<{ email: string, role: Roles }[] | string> {
+        await this.checkGrants(userId)
+
         const roles = await this.roleModel.find({ role: Roles.guest })
         return Promise.all(roles.map((role) => this.authModel
             .findOne({ userId: role.userId })
@@ -27,10 +34,7 @@ export class AdminService {
     }
 
     async approveEmail(userId: TUserId, email: string) {
-        const role = await this.roleModel.findOne({ userId, role: Roles.admin })
-        if (!role) {
-            throw new Error('Forbidden')
-        }
+        await this.checkGrants(userId)
 
         const auth = await this.authModel.findOne({ email })
         if (!auth || !auth.userId) {
@@ -44,5 +48,11 @@ export class AdminService {
             userId: auth.userId,
             role: Roles.user
         })
+    }
+
+    async getCoursesList(userId: TUserId):Promise<TCourseUpdateDTO[]> {
+        await this.checkGrants(userId)
+
+        return this.courseModel.find({})
     }
 }

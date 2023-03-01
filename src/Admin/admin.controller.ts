@@ -58,4 +58,23 @@ export class AdminController {
             return
         }
     }
+
+    @Get('courses/list')
+    async getCourses(@Token() token: string, @Res() response: Response) {
+        const userId = await this.authService.getUserId(token)
+        // todo: move grant check to role service
+        if (!userId) {
+            response.statusCode = 401
+            response.send({ message: [ 'Unauthorised' ] })
+            return
+        }
+        try {
+            response.statusCode = 200
+            response.send(await this.adminService.getCoursesList(userId))
+        } catch (error) {
+            response.statusCode = 403
+            response.send({ message: [ error.toString() ] })
+            return
+        }
+    }
 }
