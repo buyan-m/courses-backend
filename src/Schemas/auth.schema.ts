@@ -1,7 +1,10 @@
 import * as mongoose from 'mongoose'
 
 export const AuthSchema = new mongoose.Schema({
-    userId: String,
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    },
     email: String,
     password: String
 })
