@@ -70,7 +70,7 @@ export class EditorController {
     async createLesson(@Body() lesson: LessonCreateDTO, @Token() token: string, @Res() response: Response) {
         const userId = await this.authService.getUserId(token)
         const roles = await this.roleService.getUserRoles(userId)
-        const grant = await this.editorService.checkGrants(userId, lesson.courseId, TGrantObjectType.course)
+        const grant = await this.editorService.checkGrants(userId, lesson.courseId.toString(), TGrantObjectType.course)
         if (!grant || !roles.some(({ role }) => role === Roles.user)) {
             response.statusCode = 403
             response.send({})
@@ -110,7 +110,7 @@ export class EditorController {
     async createPage(@Body() page: PageCreateDTO, @Token() token: string, @Res() response: Response) {
         const userId = await this.authService.getUserId(token)
         const roles = await this.roleService.getUserRoles(userId)
-        const grant = await this.editorService.checkGrants(userId, page.lessonId, TGrantObjectType.lesson)
+        const grant = await this.editorService.checkGrants(userId, page.lessonId.toString(), TGrantObjectType.lesson)
         if (!grant || !roles.some(({ role }) => role === Roles.user)) {
             response.statusCode = 403
             response.send({})

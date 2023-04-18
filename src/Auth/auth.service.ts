@@ -98,7 +98,7 @@ export class AuthService {
         return this.tokenModel.findOneAndDelete({ token })
     }
 
-    async getUserId(token) {
+    async getUserId(token: string) {
         const session = await this.tokenModel.findOne({ token })
         return session.userId
     }

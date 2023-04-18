@@ -1,5 +1,5 @@
 import {
-    Controller, Get, Post, Param, Query, Req
+    Controller, Get, Post, Param, Query, Req, HttpStatus, HttpException
 } from '@nestjs/common'
 import { ViewerService } from './viewer.service'
 import {
@@ -7,6 +7,7 @@ import {
 } from '../types/entities.types'
 import { AuthService } from '../Auth/auth.service'
 import { Request } from 'express'
+import { Token } from '../utils/extractToken'
 
 @Controller('/viewer')
 export class ViewerController {
@@ -16,6 +17,7 @@ export class ViewerController {
     async getFeaturedCourses(@Req() request: Request) {
         const userId = await this.authService.getUserId(request.cookies.token)
         // todo: make a list of courses
+
         return this.viewerService.getCourse('63f093f2fa45c64e433940b9', userId)
     }
 
@@ -27,7 +29,16 @@ export class ViewerController {
     @Get('courses/:courseId')
     async getCourse(@Req() request: Request, @Param('courseId') courseId: TCourseId) {
         const userId = await this.authService.getUserId(request.cookies.token)
-        return this.viewerService.getCourse(courseId, userId)
+        try {
+            return await this.viewerService.getCourse(courseId, userId)
+        } catch (error) {
+            const errorText = error.toString()
+            if (errorText === 'Error: Forbidden') {
+                throw new HttpException('Error: Forbidden', HttpStatus.FORBIDDEN)
+            } else if (errorText === 'Error: Not found') {
+                throw new HttpException('Error: Not found', HttpStatus.NOT_FOUND)
+            }
+        }
     }
 
     @Get('lessons/:lessonId')
@@ -42,8 +53,8 @@ export class ViewerController {
     }
 
     @Post('pages/:pageId/next')
-    async completePage(@Param('pageId') pageId: TPageId, @Req() request: Request) {
-        const userId = await this.authService.getUserId(request.cookies.token)
+    async completePage(@Param('pageId') pageId: TPageId, @Token() token) {
+        const userId = await this.authService.getUserId(token)
         await this.viewerService.completePage(pageId, userId)
         return this.viewerService.getNextPage(pageId)
     }

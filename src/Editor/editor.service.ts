@@ -59,7 +59,7 @@ export class EditorService {
                         return {
                             ...lesson.toObject(),
                             // todo use Map
-                            pages: pages.filter(({ lessonId }) => lessonId === lesson._id.toString())
+                            pages: pages.filter(({ lessonId }) => lessonId === lesson._id)
                         }
                     })
                 }),
@@ -140,7 +140,7 @@ export class EditorService {
         return this.pageModel.findByIdAndRemove(pageId)
     }
 
-    checkGrants(userId: string, entityId: string, entityType: TGrantObjectType) {
+    checkGrants(userId: TUserId, entityId: string, entityType: TGrantObjectType) {
         return this.grantModel.find({
             userId,
             objectId: entityId,
