@@ -3,9 +3,10 @@ export enum EditorBlockType {
     'heading' = 'heading',
     'audio' = 'audio',
     'video' = 'video',
+    'image' = 'image',
     'radio' = 'radio',
     'checkbox' = 'checkbox',
-    'image' = 'image'
+    'text' = 'text'
 }
 
 export type TOption = {

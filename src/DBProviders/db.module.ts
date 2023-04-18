@@ -8,6 +8,9 @@ import { grantProvider } from './grant.db.provider'
 import { progressProvider } from './progress.db.provider'
 import { roleProvider } from './role.db.provider'
 import { databaseProvider } from './connection.db.provider'
+import { teacherProvider } from './teacher.db.provider'
+import { studentProvider } from './student.db.provider'
+import { answerProvider } from './answer.db.provider'
 
 @Module({
     exports: [
@@ -19,7 +22,10 @@ import { databaseProvider } from './connection.db.provider'
         authProvider,
         tokenProvider,
         roleProvider,
-        progressProvider
+        progressProvider,
+        teacherProvider,
+        studentProvider,
+        answerProvider
     ],
     providers: [
         databaseProvider,
@@ -31,7 +37,10 @@ import { databaseProvider } from './connection.db.provider'
         authProvider,
         tokenProvider,
         roleProvider,
-        progressProvider
+        progressProvider,
+        teacherProvider,
+        studentProvider,
+        answerProvider
     ]
 })
 export class DBModule {}

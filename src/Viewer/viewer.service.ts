@@ -1,4 +1,6 @@
-import { Inject, Injectable } from '@nestjs/common'
+import {
+    HttpException, HttpStatus, Inject, Injectable
+} from '@nestjs/common'
 import { Model } from 'mongoose'
 import {
     TCourseDTO,
@@ -35,7 +37,13 @@ export class ViewerService {
         return Promise.all([
             this.courseModel.findById(courseId),
             this.lessonModel.find({ courseId })
+            // this.teachersModel.find(...) как поделиться статистикой? как вдвоем вести одну группу?
+            // может отдельную ручку? в этом модуле или в дополнительном?
+            // надо нарисовать схему взаимодейтсвия
         ]).then(([ course, lessons ]) => {
+            if (!course) {
+                throw new HttpException('Error: Not found', HttpStatus.NOT_FOUND)
+            }
             return Promise.all(lessons.map(
                 (lesson) => {
                     return Promise.all([
@@ -115,7 +123,7 @@ export class ViewerService {
             // 404
         }
 
-        return { pageId: neededPage._id.toString() }
+        return { pageId: neededPage._id }
     }
 
     searchCourse(text) {

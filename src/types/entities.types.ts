@@ -1,10 +1,12 @@
 import { TEditorBlock } from './editor-content.types'
 import { Roles } from '../constants/general-roles'
+import { StudentTypes } from '../constants/student-types'
+import { Types } from 'mongoose'
 
-export type TCourseId = string
-export type TLessonId = string
-export type TPageId = string
-export type TUserId = string
+export type TCourseId = Types.ObjectId
+export type TLessonId = Types.ObjectId
+export type TPageId = Types.ObjectId
+export type TUserId = Types.ObjectId
 
 export enum TGrantObjectType {
     'course' = 'course',
@@ -50,7 +52,8 @@ export type TPage = {
         blocks: TEditorBlock[]
     },
     name: string,
-    lessonId: string,
+    isAnswersVisible: boolean,
+    lessonId: TLessonId,
     position: number
 }
 
@@ -87,4 +90,47 @@ export type TProgress = {
 export type TRole = {
     userId: TUserId,
     role: Roles
+}
+
+export type TTeacher = {
+    userId: TUserId
+    courseId: TCourseId
+}
+
+export type TStudent = {
+    userId: TUserId,
+    teacherId: TUserId,
+    courseId: TCourseId,
+    type: StudentTypes
+}
+export enum AnswerTypes {
+    radio= 'radio',
+    check= 'check',
+    text= 'text'
+}
+
+type TRadioAnswer = {
+    type: AnswerTypes.radio,
+    value: number
+}
+
+type TCheckAnswer = {
+    type: AnswerTypes.check,
+    value: number[]
+}
+
+type TTextAnswer = {
+    type: AnswerTypes.text,
+    value: string
+}
+
+export type TAnswer = TRadioAnswer | TCheckAnswer | TTextAnswer
+
+export type TAnswersDTO = {
+    studentId: TUserId,
+    pageId: TPageId,
+    answers: {
+        id: string,
+        answer: TAnswer
+    }[]
 }
