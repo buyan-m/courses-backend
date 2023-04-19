@@ -1,6 +1,4 @@
-import {
-    HttpException, HttpStatus, Inject, Injectable
-} from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import { Model } from 'mongoose'
 import {
     TCourseDTO,
@@ -15,6 +13,7 @@ import {
     TCourseResponse,
     TLessonResponse
 } from '../types/entities.types'
+import { throwNotFound } from '../utils/errors'
 
 @Injectable()
 export class ViewerService {
@@ -42,7 +41,7 @@ export class ViewerService {
             // надо нарисовать схему взаимодейтсвия
         ]).then(([ course, lessons ]) => {
             if (!course) {
-                throw new HttpException('Error: Not found', HttpStatus.NOT_FOUND)
+                throwNotFound()
             }
             return Promise.all(lessons.map(
                 (lesson) => {

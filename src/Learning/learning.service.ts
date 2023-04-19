@@ -3,10 +3,11 @@ import {
 } from '@nestjs/common'
 import { Model } from 'mongoose'
 import {
-    TTeacher, TStudent, TPage, TLesson, TUserId, TAnswersDTO
+    TTeacher, TStudent, TPage, TLesson, TUserId, TAnswersDTO, TCourseId
 } from '../types/entities.types'
 import { StudentTypes } from '../constants/student-types'
 import { CourseAndStudentDTO } from './learning.classes'
+import { throwForbidden } from '../utils/errors'
 
 @Injectable()
 export class LearningService {
@@ -32,7 +33,7 @@ export class LearningService {
         }).save()
     }
 
-    becameTeacher(courseId: string, teacherId: TUserId): Promise<TTeacher> {
+    becameTeacher(courseId: TCourseId, teacherId: TUserId): Promise<TTeacher> {
         return new this.teacherModel( {
             userId: teacherId,
             courseId
@@ -70,7 +71,7 @@ export class LearningService {
         })
 
         if (!student && userId !== studentId) {
-            throw new HttpException('Error: Forbidden', HttpStatus.FORBIDDEN)
+            throwForbidden()
         }
 
         return this.answerModel.findOne({

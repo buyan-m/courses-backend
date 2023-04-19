@@ -1,5 +1,5 @@
 import {
-    Body, Controller, Delete, Get, Param, Post, Res
+    Body, Controller, Delete, Get, Param, Post
 } from '@nestjs/common'
 import { EditorService } from './editor.service'
 import { AuthService } from '../Auth/auth.service'
@@ -9,8 +9,9 @@ import {
 } from '../types/editor.classes'
 import { Token } from '../utils/extractToken'
 import { Roles } from '../constants/general-roles'
-import { Response } from 'express'
 import { RoleService } from '../Role/role.service'
+import { ObjectIdValidationPipe } from '../utils/object-id'
+import { throwForbidden } from '../utils/errors'
 
 @Controller('/editor')
 export class EditorController {
@@ -22,41 +23,37 @@ export class EditorController {
 
     // Courses
     @Post('courses/create')
-    async createCourse(@Body() course: CourseDTO, @Token() token: string, @Res() response: Response) {
+    async createCourse(@Body() course: CourseDTO, @Token() token: string) {
         const userId = await this.authService.getUserId(token)
         const roles = await this.roleService.getUserRoles(userId)
         if (!roles.some(({ role }) => role === Roles.user)) {
-            response.statusCode = 403
-            response.send({})
+            throwForbidden()
         }
-        response.send(await this.editorService.createCourse(course, userId))
+        return this.editorService.createCourse(course, userId)
     }
 
     @Post('courses/:courseId')
     async updateCourse(
-    @Param('courseId') courseId,
+    @Param('courseId', ObjectIdValidationPipe) courseId,
         @Body() course: CourseDTO,
-        @Token() token: string,
-        @Res() response: Response
+        @Token() token: string
     ) {
         const userId = await this.authService.getUserId(token)
         const grant = await this.editorService.checkGrants(userId, courseId, TGrantObjectType.course)
         if (!grant) {
-            response.statusCode = 403
-            response.send({})
+            throwForbidden()
         }
-        response.send(await this.editorService.updateCourse(courseId, course))
+        return this.editorService.updateCourse(courseId, course)
     }
 
     @Get('courses/:courseId')
-    async getCourse(@Param('courseId') courseId, @Token() token: string, @Res() response: Response) {
+    async getCourse(@Param('courseId', ObjectIdValidationPipe) courseId, @Token() token: string) {
         const userId = await this.authService.getUserId(token)
         const grant = await this.editorService.checkGrants(userId, courseId, TGrantObjectType.course)
         if (!grant) {
-            response.statusCode = 403
-            response.send({})
+            throwForbidden()
         }
-        response.send(await this.editorService.getCourse(courseId))
+        return this.editorService.getCourse(courseId)
     }
 
     @Get('courses')
@@ -67,87 +64,79 @@ export class EditorController {
 
     // Lessons
     @Post('lessons/create')
-    async createLesson(@Body() lesson: LessonCreateDTO, @Token() token: string, @Res() response: Response) {
+    async createLesson(@Body() lesson: LessonCreateDTO, @Token() token: string) {
         const userId = await this.authService.getUserId(token)
         const roles = await this.roleService.getUserRoles(userId)
         const grant = await this.editorService.checkGrants(userId, lesson.courseId.toString(), TGrantObjectType.course)
         if (!grant || !roles.some(({ role }) => role === Roles.user)) {
-            response.statusCode = 403
-            response.send({})
+            throwForbidden()
         }
-        response.send(await this.editorService.createLesson(lesson, userId))
+        return this.editorService.createLesson(lesson, userId)
     }
 
     @Post('lessons/:lessonId')
     async updateLesson(
-    @Param('lessonId') lessonId,
+    @Param('lessonId', ObjectIdValidationPipe) lessonId,
         @Body() lesson: LessonUpdateDTO,
-        @Token() token: string,
-        @Res() response: Response
+        @Token() token: string
     ) {
         const userId = await this.authService.getUserId(token)
         const grant = await this.editorService.checkGrants(userId, lessonId, TGrantObjectType.lesson)
         if (!grant) {
-            response.statusCode = 403
-            response.send({})
+            throwForbidden()
         }
-        response.send(await this.editorService.updateLesson(lesson))
+        return this.editorService.updateLesson(lesson)
     }
 
     @Get('lessons/:lessonId')
-    async getLesson(@Param('lessonId') lessonId, @Token() token: string, @Res() response: Response) {
+    async getLesson(@Param('lessonId', ObjectIdValidationPipe) lessonId, @Token() token: string) {
         const userId = await this.authService.getUserId(token)
         const grant = await this.editorService.checkGrants(userId, lessonId, TGrantObjectType.lesson)
         if (!grant) {
-            response.statusCode = 403
-            response.send({})
+            throwForbidden()
         }
-        response.send(await this.editorService.getLesson(lessonId))
+        return this.editorService.getLesson(lessonId)
     }
 
     // Pages
     @Post('pages/create')
-    async createPage(@Body() page: PageCreateDTO, @Token() token: string, @Res() response: Response) {
+    async createPage(@Body() page: PageCreateDTO, @Token() token: string) {
         const userId = await this.authService.getUserId(token)
         const roles = await this.roleService.getUserRoles(userId)
         const grant = await this.editorService.checkGrants(userId, page.lessonId.toString(), TGrantObjectType.lesson)
         if (!grant || !roles.some(({ role }) => role === Roles.user)) {
-            response.statusCode = 403
-            response.send({})
+            throwForbidden()
         }
-        response.send(await this.editorService.createPage(page, userId))
+        return this.editorService.createPage(page, userId)
     }
 
     @Post('pages/:pageId')
-    async updatePage(@Param('pageId') pageId, @Body() page: TPage, @Token() token: string, @Res() response: Response) {
+    async updatePage(@Param('pageId', ObjectIdValidationPipe) pageId, @Body() page: TPage, @Token() token: string) {
         const userId = await this.authService.getUserId(token)
         const grant = await this.editorService.checkGrants(userId, pageId, TGrantObjectType.page)
         if (!grant) {
-            response.statusCode = 403
-            response.send({})
+            throwForbidden()
         }
-        response.send(await this.editorService.updatePage(pageId, page))
+        return this.editorService.updatePage(pageId, page)
     }
 
     @Get('pages/:pageId')
-    async getPage(@Param('pageId') pageId, @Token() token: string, @Res() response: Response) {
+    async getPage(@Param('pageId', ObjectIdValidationPipe) pageId, @Token() token: string) {
         const userId = await this.authService.getUserId(token)
         const grant = await this.editorService.checkGrants(userId, pageId, TGrantObjectType.page)
         if (!grant) {
-            response.statusCode = 403
-            response.send({})
+            throwForbidden()
         }
-        response.send(await this.editorService.getPage(pageId))
+        return this.editorService.getPage(pageId)
     }
 
     @Delete('pages/:pageId')
-    async deletePage(@Param('pageId') pageId, @Token() token: string, @Res() response: Response) {
+    async deletePage(@Param('pageId', ObjectIdValidationPipe) pageId, @Token() token: string) {
         const userId = await this.authService.getUserId(token)
         const grant = await this.editorService.checkGrants(userId, pageId, TGrantObjectType.page)
         if (!grant) {
-            response.statusCode = 403
-            response.send({})
+            throwForbidden()
         }
-        response.send(await this.editorService.removePage(pageId))
+        return this.editorService.removePage(pageId)
     }
 }

@@ -6,6 +6,7 @@ import {
 import * as bcrypt from 'bcrypt'
 import { TOKEN_MAX_AGE } from '../constants/auth-token-age'
 import { Roles } from '../constants/general-roles'
+import { throwUnauthorized } from '../utils/errors'
 
 const HASH_ROUNDS = 3
 
@@ -26,7 +27,7 @@ export class AuthService {
         const auth = await this.authModel.findOne({ email })
 
         if (!auth) {
-            throw new Error('Unauthorised')
+            throwUnauthorized()
         }
 
         return new Promise((resolve, reject) => {
@@ -40,7 +41,7 @@ export class AuthService {
                     }).save()
                     resolve(token)
                 } else {
-                    reject(new Error('Unauthorised'))
+                    reject()
                 }
             })})
     }
@@ -74,21 +75,21 @@ export class AuthService {
             return token
         }
 
-        throw new Error('Unauthorised')
+        throwUnauthorized()
     }
 
     async checkAuth(token: string) {
         if (!token) {
-            throw new Error('Unauthorised')
+            throwUnauthorized()
         }
         const session = await this.tokenModel.findOne({ token })
 
         if (!session) {
-            throw new Error('Unauthorised')
+            throwUnauthorized()
         }
         if (session.validTill < new Date()) {
             session.deleteOne()
-            throw new Error('Unauthorised')
+            throwUnauthorized()
         }
 
         return session.userId
