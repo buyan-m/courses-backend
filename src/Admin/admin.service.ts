@@ -4,6 +4,7 @@ import {
     TAuth, TCourseDTO, TCourseUpdateDTO, TRole, TUserId
 } from '../types/entities.types'
 import { Roles } from '../constants/general-roles'
+import { throwForbidden, throwNotFound } from '../utils/errors'
 
 @Injectable()
 export class AdminService {
@@ -19,7 +20,7 @@ export class AdminService {
     async checkGrants(userId) {
         const role = await this.roleModel.findOne({ userId, role: Roles.admin })
         if (!role) {
-            throw new Error('Forbidden')
+            throwForbidden()
         }
     }
 
@@ -38,7 +39,7 @@ export class AdminService {
 
         const auth = await this.authModel.findOne({ email })
         if (!auth || !auth.userId) {
-            throw new Error('Not found')
+            throwNotFound()
         }
 
         return this.roleModel.findOneAndUpdate({

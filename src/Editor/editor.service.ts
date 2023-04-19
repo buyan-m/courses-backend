@@ -14,6 +14,7 @@ import {
     TLessonUpdateDTO
 } from '../types/entities.types'
 import { CourseDTO, PageCreateDTO } from '../types/editor.classes'
+import { throwNotFound } from '../utils/errors'
 
 @Injectable()
 export class EditorService {
@@ -65,6 +66,9 @@ export class EditorService {
                 }),
             this.courseModel.findById( courseId )
         ]).then(([ lessons, course ]) => {
+            if (!course) {
+                throwNotFound()
+            }
             return {
                 ...course.toObject(),
                 lessons

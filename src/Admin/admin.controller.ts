@@ -1,11 +1,11 @@
 import {
-    Body, Controller, Put, Get, Res
+    Body, Controller, Put, Get
 } from '@nestjs/common'
 import { AdminService } from './admin.service'
 import { AuthService } from '../Auth/auth.service'
 import { EmailApproveDto } from '../types/admin.classes'
-import { Response } from 'express'
 import { Token } from '../utils/extractToken'
+import { throwUnauthorized } from '../utils/errors'
 
 @Controller('/admin')
 export class AdminController {
@@ -15,66 +15,33 @@ export class AdminController {
     ) {}
 
     @Get('fresh-email/list')
-    async getEmails(@Token() token: string, @Res() response: Response) {
+    async getEmails(@Token() token: string) {
         const userId = await this.authService.getUserId(token)
         // todo: move grant check to role service
         if (!userId) {
-            response.statusCode = 401
-            response.send({ message: [ 'Unauthorised' ] })
-            return
+            throwUnauthorized()
         }
-        try {
-            response.statusCode = 200
-            response.send(await this.adminService.getEmailList(userId))
-        } catch (error) {
-            response.statusCode = 403
-            response.send({ message: [ error.toString() ] })
-            return
-        }
+        return this.adminService.getEmailList(userId)
     }
 
     @Put('fresh-email/approve')
-    async approveEmail(@Body() body: EmailApproveDto, @Token() token: string, @Res() response: Response) {
+    async approveEmail(@Body() body: EmailApproveDto, @Token() token: string) {
         const userId = await this.authService.getUserId(token)
-        // todo: move grant check to role service
         if (!userId) {
-            response.statusCode = 401
-            response.send({ message: [ 'Unauthorised' ] })
-            return
+            throwUnauthorized()
         }
-        try {
-            await this.adminService.approveEmail(userId, body.email)
-            response.statusCode = 200
-            response.send({})
-        } catch (error) {
-            const errorText = error.toString()
-            if (errorText === 'Error: Forbidden') {
-                response.statusCode = 403
-            } else if (errorText === 'Error: Not found') {
-                response.statusCode = 404
-            }
 
-            response.send({ message: [ errorText ] })
-            return
-        }
+        await this.adminService.approveEmail(userId, body.email)
+        return {}
     }
 
     @Get('courses/list')
-    async getCourses(@Token() token: string, @Res() response: Response) {
+    async getCourses(@Token() token: string) {
         const userId = await this.authService.getUserId(token)
-        // todo: move grant check to role service
         if (!userId) {
-            response.statusCode = 401
-            response.send({ message: [ 'Unauthorised' ] })
-            return
+            throwUnauthorized()
         }
-        try {
-            response.statusCode = 200
-            response.send(await this.adminService.getCoursesList(userId))
-        } catch (error) {
-            response.statusCode = 403
-            response.send({ message: [ error.toString() ] })
-            return
-        }
+
+        return this.adminService.getCoursesList(userId)
     }
 }

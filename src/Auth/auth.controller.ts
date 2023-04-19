@@ -1,11 +1,13 @@
 import {
-    Controller, Post, Get, Req, Res, Body
+    Controller, Post, Get, Res, Body
 } from '@nestjs/common'
 import { AuthService } from './auth.service'
-import { Request, Response } from 'express'
+import { Response } from 'express'
 import { TOKEN_MAX_AGE } from '../constants/auth-token-age'
 import { AuthDto, RegisterDto } from '../types/auth.classes'
 import { RoleService } from '../Role/role.service'
+import { Token } from '../utils/extractToken'
+import { throwUnauthorized } from '../utils/errors'
 
 @Controller()
 export class AuthController {
@@ -21,8 +23,11 @@ export class AuthController {
             response.cookie('token', token, { httpOnly: true, maxAge: TOKEN_MAX_AGE * 1000 })
             response.send({})
         } catch (e) {
-            response.statusCode = 401
-            response.send({ message: [ e.toString() ] })
+            if (!e) {
+                throwUnauthorized()
+            }
+            response.statusCode = e.getStatus()
+            response.send(e.text)
         }
     }
 
@@ -33,29 +38,24 @@ export class AuthController {
             response.cookie('token', token, { httpOnly: true, maxAge: TOKEN_MAX_AGE })
             response.send({})
         } catch (e) {
-            response.statusCode = 401
-            response.send({ message: [ e.toString() ] })
+            response.statusCode = e.getStatus()
+            response.send(e.text)
         }
     }
 
     @Get('/auth-check')
-    async checkAuth(@Req() request: Request, @Res() response: Response) {
-        try {
-            const userId = await this.authService.checkAuth(request.cookies.token)
-            const roles = await this.roleService.getUserRoles(userId)
-            response.send({
-                userId,
-                roles: roles.map(({ role }) => role)
-            })
-        } catch (e) {
-            response.statusCode = 401
-            response.send({ message: [ e.toString() ] })
+    async checkAuth(@Token() token: string) {
+        const userId = await this.authService.checkAuth(token)
+        const roles = await this.roleService.getUserRoles(userId)
+        return {
+            userId,
+            roles: roles.map(({ role }) => role)
         }
     }
 
     @Get('/logout')
-    logout(@Req() request: Request, @Res() response: Response) {
-        this.authService.logout(request.cookies.token)
+    logout(@Token() token: string, @Res() response: Response) {
+        this.authService.logout(token)
         response.cookie('token', '', { httpOnly: true, maxAge: 0 })
         response.send({})
     }
