@@ -35,7 +35,7 @@ export class PageCreateDTO {
 
     @IsString()
     @IsNotEmpty()
-        lessonId: TLessonId
+        lessonId: string
 
     structure: {
         blocks: TEditorBlock[]

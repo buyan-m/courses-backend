@@ -60,7 +60,7 @@ export class EditorService {
                         return {
                             ...lesson.toObject(),
                             // todo use Map
-                            pages: pages.filter(({ lessonId }) => lessonId === lesson._id)
+                            pages: pages.filter(({ lessonId }) => lessonId.toString() === lesson._id.toString())
                         }
                     })
                 }),
@@ -74,7 +74,6 @@ export class EditorService {
                 lessons
             }
         })
-
     }
 
     getAvailableCourses(userId: TUserId) {
