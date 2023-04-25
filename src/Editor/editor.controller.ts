@@ -103,7 +103,7 @@ export class EditorController {
     async createPage(@Body() page: PageCreateDTO, @Token() token: string) {
         const userId = await this.authService.getUserId(token)
         const roles = await this.roleService.getUserRoles(userId)
-        const grant = await this.editorService.checkGrants(userId, page.lessonId.toString(), TGrantObjectType.lesson)
+        const grant = await this.editorService.checkGrants(userId, page.lessonId, TGrantObjectType.lesson)
         if (!grant || !roles.some(({ role }) => role === Roles.user)) {
             throwForbidden()
         }
