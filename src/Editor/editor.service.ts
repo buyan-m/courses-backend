@@ -146,9 +146,8 @@ export class EditorService {
         return this.pageModel.findById(pageId)
     }
 
-    async removePage(pageId) {
-        await this.pageModel.findByIdAndRemove(pageId)
-        return {}
+    removePage(pageId) {
+        return this.pageModel.findByIdAndRemove(pageId)
     }
 
     checkGrants(userId: TUserId, entityId: string, entityType: GrantObjectType) {

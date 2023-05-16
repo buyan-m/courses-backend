@@ -116,7 +116,7 @@ export class ViewerService {
         const neededPage = await this.pageModel.findOne({
             lessonId: page.lessonId,
             position: page.position + 1
-        }).exec()
+        })
 
         if (!neededPage) {
             // 404
@@ -142,7 +142,7 @@ export class ViewerService {
                 objectType: GrantObjectType.page
             }).save()
         }
-        return undefined
+        return
     }
 
     async completeLesson(lessonId, userId) {

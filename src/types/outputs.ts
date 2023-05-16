@@ -29,6 +29,12 @@ import {
     Option
 } from './editor-content.types'
 
+import {
+    CourseAndStudentDTO,
+    TAnswerFeedback,
+    TUpdateFeedbackDTO
+} from '../Learning/learning.classes'
+
 export class CourseCreateResponse {
     @ApiProperty({ type: String })
         courseId: TCourseId

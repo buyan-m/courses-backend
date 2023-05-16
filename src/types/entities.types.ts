@@ -5,6 +5,7 @@ import { Types } from 'mongoose'
 import { ApiProperty } from '@nestjs/swagger'
 import { CourseDTO } from './editor.classes'
 import {
+    IsArray,
     IsBoolean,
     IsNotEmpty, IsNotEmptyObject, IsNumber, IsObject, IsString, ValidateNested
 } from 'class-validator'
@@ -76,6 +77,9 @@ export class ViewerCourseResponse extends CourseDTO {
 }
 
 export class CourseResponse extends CourseDTO {
+    @ApiProperty({ type: String })
+        _id: TCourseId
+
     @ApiProperty({ isArray: true, type: LessonResponse })
         lessons: LessonResponse[]
 }
@@ -192,8 +196,8 @@ export class Student {
 
 export enum AnswerTypes {
     radio= 'radio',
-    check= 'check',
-    text= 'text'
+    checkbox= 'checkbox',
+    input= 'input'
 }
 
 export enum AnswerCorrectness {
@@ -211,6 +215,7 @@ export class AnswerFeedback {
 }
 
 abstract class AbstractAnswerWithFeedback extends AnswerFeedback{
+    @IsString()
     @ApiProperty()
         type: string
 
@@ -225,13 +230,13 @@ export class RadioAnswer extends AnswerFeedback implements AbstractAnswerWithFee
 }
 
 export class CheckAnswer extends AnswerFeedback implements AbstractAnswerWithFeedback{
-    type: AnswerTypes.check
+    type: AnswerTypes.checkbox
 
     value: string[]
 }
 
 export class TextAnswer extends AnswerFeedback implements AbstractAnswerWithFeedback{
-    type: AnswerTypes.text
+    type: AnswerTypes.input
 
     value: string
 }
@@ -239,20 +244,30 @@ export class TextAnswer extends AnswerFeedback implements AbstractAnswerWithFeed
 export type TAnswer = RadioAnswer | CheckAnswer | TextAnswer
 
 export class AnswerWithId {
+    @IsString()
     @ApiProperty()
         id: string
 
+    @Type(() => AbstractAnswerWithFeedback)
     @ApiProperty({ type: AbstractAnswerWithFeedback })
         answer: TAnswer
 }
 
 export class AnswersDTO {
+    @IsArray()
+    @ValidateNested()
+    @Type(() => AnswerWithId)
+    @ApiProperty({ type: AnswerWithId, isArray: true })
+        answers: AnswerWithId[]
+}
+
+export class PageAnswers extends AnswersDTO {
+    @IsString()
     @ApiProperty({ type: String })
         studentId: TUserId
 
+    @IsString()
     @ApiProperty({ type: String })
         pageId: TPageId
 
-    @ApiProperty({ type: AnswerWithId, isArray: true })
-        answers: AnswerWithId[]
 }
