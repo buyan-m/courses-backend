@@ -6,6 +6,7 @@ import { AuthService } from '../Auth/auth.service'
 import { EmailApproveDto } from '../types/admin.classes'
 import { Token } from '../utils/extractToken'
 import { throwUnauthorized } from '../utils/errors'
+import { OkResponse } from '../utils/emptyResponse'
 
 @Controller('/admin')
 export class AdminController {
@@ -32,7 +33,7 @@ export class AdminController {
         }
 
         await this.adminService.approveEmail(userId, body.email)
-        return {}
+        return new OkResponse()
     }
 
     @Get('courses/list')

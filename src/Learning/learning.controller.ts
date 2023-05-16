@@ -1,13 +1,16 @@
 import {
-    Body, Controller, Get, Param, Post, Put
+    Body, Controller, Delete, Get, Param, Post, Put
 } from '@nestjs/common'
 import { Token } from '../utils/extractToken'
 import { LearningService } from './learning.service'
-import { CourseAndStudentDTO } from './learning.classes'
+import { CourseAndStudentDTO, TUpdateFeedbackDTO } from './learning.classes'
 import { AuthService } from '../Auth/auth.service'
-import { AnswersDTO, TCourseId } from '../types/entities.types'
+import {
+    AnswersDTO, Student, TCourseId, PageAnswers
+} from '../types/entities.types'
 import { ObjectIdValidationPipe } from '../utils/object-id'
 import { ApiResponse } from '@nestjs/swagger'
+import { OkResponse } from '../utils/emptyResponse'
 
 @Controller('learning')
 export class LearningController {
@@ -17,22 +20,39 @@ export class LearningController {
     ) {}
 
     @Post('invite')
-    async inviteStudent(@Body() courseAndStudentDTO: CourseAndStudentDTO, @Token() token: string) {
+    async inviteStudent(
+        @Body() courseAndStudentDTO: CourseAndStudentDTO,
+            @Token() token: string
+    ): Promise<OkResponse> {
         // проверить учитель ли этот пользователь
         const teacherId = await this.authService.getUserId(token)
-        return this.learningService.inviteStudent(teacherId, courseAndStudentDTO)
+        await this.learningService.inviteStudent(teacherId, courseAndStudentDTO)
+        return new OkResponse()
     }
 
     @Put('archive-student')
-    archiveStudent(@Body() studentAndCourseIds: unknown, @Token() token: string) {
+    async archiveStudent(@Body() studentAndCourseIds: CourseAndStudentDTO, @Token() token: string) {
         // нужно в сервисе поставить у студента тип "архивный"
+        const teacherId = await this.authService.getUserId(token)
+        await this.learningService.archiveStudent(teacherId, studentAndCourseIds)
+        return new OkResponse()
+    }
+
+    @Get('students')
+    @ApiResponse({ type: Student, isArray: true })
+    async getOwnStudents(@Token() token: string): Promise<Student[]> {
+        const teacherId = await this.authService.getUserId(token)
+        return this.learningService.getTeacherStudents(teacherId)
     }
 
     @Post('became-teacher/:courseId')
-    async becameTeacher(@Param('courseId', ObjectIdValidationPipe) courseId: TCourseId, @Token() token: string) {
+    async becameTeacher(
+        @Param('courseId', ObjectIdValidationPipe) courseId: TCourseId,
+            @Token() token: string
+    ): Promise<OkResponse> {
         const teacherId = await this.authService.getUserId(token)
         await this.learningService.becameTeacher(courseId, teacherId)
-        return {}
+        return new OkResponse()
     }
 
     @Put('save-answers/:pageId')
@@ -50,44 +70,58 @@ export class LearningController {
         })
     }
 
-    @Post('reset-answers/:pageId')
-    resetAnswers(
+    @Delete('answers/:pageId/:studentId')
+    async resetAnswers(
     @Param('pageId', ObjectIdValidationPipe) pageId,
+        @Param('studentId', ObjectIdValidationPipe) studentId,
         @Token() token: string,
-        @Body() commentAndStudentId: unknown
+        @Body() comment?: unknown
     ) {
-        // сбросить ответы ученика и дать общий комментарий
+        const teacherId = await this.authService.getUserId(token)
+
+        await this.learningService.resetAnswers({
+            teacherId, studentId, pageId
+        })
+
         // комментарий в систему оповещений отправить
+        return new OkResponse()
     }
 
     @Get('answers/:pageId')
-    @ApiResponse({ type: AnswersDTO })
+    @ApiResponse({ type: PageAnswers })
     async getOwnSavedAnswers(
         @Param('pageId', ObjectIdValidationPipe) pageId: string,
             @Token() token: string
-    ): Promise<AnswersDTO> {
+    ): Promise<PageAnswers> {
         const studentId = await this.authService.getUserId(token)
         return this.learningService.getOwnAnswers(studentId, pageId)
     }
 
     @Get('answers/:pageId/:studentId')
-    @ApiResponse({ type: AnswersDTO })
+    @ApiResponse({ type: PageAnswers })
     async getSavedAnswers(
         @Param('pageId', ObjectIdValidationPipe) pageId,
             @Param('studentId', ObjectIdValidationPipe) studentId,
             @Token() token: string
-    ): Promise<AnswersDTO> {
+    ): Promise<PageAnswers> {
         // пойти в сервис и забрать ответы, которые уже есть на странице + фидбэк
         const userId = await this.authService.getUserId(token)
-        return this.learningService.getAnswers(userId, pageId, studentId)
+        return this.learningService.getAnswers({
+            teacherId: userId, pageId, studentId
+        })
     }
 
-    @Put('answers-feedback/:pageId')
-    createFeedbackToAnswers(
+    @Put('answers-feedback/:pageId/:studentId')
+    async createFeedbackToAnswers(
     @Param('pageId', ObjectIdValidationPipe) pageId,
+        @Param('studentId', ObjectIdValidationPipe) studentId,
         @Token() token: string,
-        @Body() feedback: unknown
+        @Body() feedback: TUpdateFeedbackDTO['feedback']
     ) {
+        const teacherId = await this.authService.getUserId(token)
+        return this.learningService.updateFeedback({
+            teacherId, studentId, pageId, feedback
+        })
         // пойти в сервис и дополнить ответы фидбэком, проверкой и т.д.
     }
 }
