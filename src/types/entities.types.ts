@@ -2,135 +2,257 @@ import { TEditorBlock } from './editor-content.types'
 import { Roles } from '../constants/general-roles'
 import { StudentTypes } from '../constants/student-types'
 import { Types } from 'mongoose'
+import { ApiProperty } from '@nestjs/swagger'
+import { CourseDTO } from './editor.classes'
+import {
+    IsBoolean,
+    IsNotEmpty, IsNotEmptyObject, IsNumber, IsObject, IsString, ValidateNested
+} from 'class-validator'
+import { Type } from 'class-transformer'
 
 export type TCourseId = Types.ObjectId
 export type TLessonId = Types.ObjectId
 export type TPageId = Types.ObjectId
 export type TUserId = Types.ObjectId
 
-export enum TGrantObjectType {
+export enum GrantObjectType {
     'course' = 'course',
     'lesson' = 'lesson',
     'page' = 'page'
 }
 
-export type TGrant = {
-    userId: TUserId,
-    objectId: TCourseId | TLessonId | TPageId,
-    objectType: TGrantObjectType
+export class Grant {
+    userId: TUserId
+
+    objectId: TCourseId | TLessonId | TPageId
+
+    objectType: GrantObjectType
 }
 
-export type TUser = {
+export class User {
     name: string
 }
 
-export type TCourseDTO = {
-    name: string
+class OmittedPage {
+    @ApiProperty()
+        name: string
+
+    @ApiProperty({ type: String })
+        lessonId: TLessonId
+
+    @ApiProperty()
+        position: number
 }
-export type TLessonResponse = {
-    pages: Omit<TPage, 'structure'>[],
-    completed: boolean
+export class Lesson {
+    @IsString()
+    @IsNotEmpty()
+    @ApiProperty()
+        name: string
+
+    @IsString()
+    @IsNotEmpty()
+    @ApiProperty()
+        courseId: TCourseId
 }
 
-export type TCourseResponse = TCourseDTO & {
-    lessons: TLessonResponse[]
+export class LessonUpdateDTO extends Lesson {
+    @ApiProperty()
+        _id: TLessonId
 }
 
-export type TCourseUpdateDTO = TCourseDTO & {_id: TCourseId}
-
-export type TLesson = {
-    name: string,
-    courseId: TCourseId
+export class LessonResponse extends LessonUpdateDTO {
+    @ApiProperty({ isArray: true, type: OmittedPage })
+        pages: OmittedPage[]
 }
 
-export type TLessonUpdateDTO = TLesson & {
-    _id: TLessonId
+export class ViewerLessonResponse extends LessonResponse {
+    @ApiProperty()
+        completed: boolean
 }
 
-export type TPage = {
-    structure: {
+export class ViewerCourseResponse extends CourseDTO {
+    @ApiProperty({ isArray: true, type: ViewerLessonResponse })
+        lessons: ViewerLessonResponse[]
+}
+
+export class CourseResponse extends CourseDTO {
+    @ApiProperty({ isArray: true, type: LessonResponse })
+        lessons: LessonResponse[]
+}
+
+export class CourseUpdateDTO extends CourseDTO {
+    @ApiProperty()
+        _id: TCourseId
+}
+
+export class EditorBlock {
+    @ApiProperty()
+        type: string
+
+    @ApiProperty()
+        data: unknown
+}
+class PageStructure {
+    @IsString()
+    @ApiProperty()
+        version: string
+
+    @IsNumber()
+    @ApiProperty()
+        time: number
+
+    @ApiProperty({ isArray: true, type: EditorBlock })
         blocks: TEditorBlock[]
-    },
-    name: string,
-    isAnswersVisible: boolean,
-    lessonId: TLessonId,
-    position: number
+}
+export class Page {
+    @ApiProperty({ type: PageStructure })
+    @IsNotEmptyObject()
+    @IsObject()
+    @ValidateNested()
+    @Type(() => PageStructure)
+        structure: PageStructure
+
+    @ApiProperty()
+    @IsString()
+        name: string
+
+    @ApiProperty()
+    @IsBoolean()
+        isAnswersVisible: boolean
+
+    @ApiProperty({ type: String })
+    @IsString()
+        lessonId: TLessonId
+
+    @ApiProperty()
+    @IsNumber()
+        position: number
 }
 
-export type TPageViewerDTO = TPage & {
-    nextPageAvailable: boolean,
-    progress: {
+export class PageViewerDTO extends Page {
+    @ApiProperty() nextPageAvailable: boolean
+
+    @ApiProperty() progress: {
         checked: boolean
     }
 }
 
-export type TNextPage = {
-    pageId: TPageId,
+export class NextPage {
+    @ApiProperty({ type: String })
+        pageId: TPageId
 }
 
-export type TAuth = {
-    userId: TUserId,
-    email: string,
+export class Auth {
+    userId: TUserId
+
+    email: string
+
     password: string
 }
 
-export type TToken = {
-    token: string,
-    userId: TUserId,
+export class Token {
+    token: string
+
+    userId: TUserId
+
     validTill: Date
 }
 
-export type TProgress = {
-    userId: TUserId,
-    objectId: TCourseId | TLessonId | TPageId,
-    objectType: TGrantObjectType,
-    checked: boolean
+export class Progress {
+    userId: TUserId
+
+    objectId: TCourseId | TLessonId | TPageId
+
+    objectType: GrantObjectType
+
+    checked = false
 }
 
-export type TRole = {
-    userId: TUserId,
+export class Role {
+    userId: TUserId
+
     role: Roles
 }
 
-export type TTeacher = {
+export class Teacher {
     userId: TUserId
+
     courseId: TCourseId
 }
 
-export type TStudent = {
-    userId: TUserId,
-    teacherId: TUserId,
-    courseId: TCourseId,
+export class Student {
+    userId: TUserId
+
+    teacherId: TUserId
+
+    courseId: TCourseId
+
     type: StudentTypes
 }
+
 export enum AnswerTypes {
     radio= 'radio',
     check= 'check',
     text= 'text'
 }
 
-type TRadioAnswer = {
-    type: AnswerTypes.radio,
-    value: number
+export enum AnswerCorrectness {
+    'correct' = 'correct',
+    'incorrect' = 'incorrect',
+    'not-verified' = 'not-verified'
 }
 
-type TCheckAnswer = {
-    type: AnswerTypes.check,
-    value: number[]
+export class AnswerFeedback {
+    @ApiProperty({ enum: AnswerCorrectness })
+        correctness: AnswerCorrectness
+
+    @ApiProperty()
+        feedback: string|undefined
 }
 
-type TTextAnswer = {
-    type: AnswerTypes.text,
+abstract class AbstractAnswerWithFeedback extends AnswerFeedback{
+    @ApiProperty()
+        type: string
+
+    @ApiProperty()
+        value: unknown
+}
+
+export class RadioAnswer extends AnswerFeedback implements AbstractAnswerWithFeedback {
+    type: AnswerTypes.radio
+
     value: string
 }
 
-export type TAnswer = TRadioAnswer | TCheckAnswer | TTextAnswer
+export class CheckAnswer extends AnswerFeedback implements AbstractAnswerWithFeedback{
+    type: AnswerTypes.check
 
-export type TAnswersDTO = {
-    studentId: TUserId,
-    pageId: TPageId,
-    answers: {
-        id: string,
+    value: string[]
+}
+
+export class TextAnswer extends AnswerFeedback implements AbstractAnswerWithFeedback{
+    type: AnswerTypes.text
+
+    value: string
+}
+
+export type TAnswer = RadioAnswer | CheckAnswer | TextAnswer
+
+export class AnswerWithId {
+    @ApiProperty()
+        id: string
+
+    @ApiProperty({ type: AbstractAnswerWithFeedback })
         answer: TAnswer
-    }[]
+}
+
+export class AnswersDTO {
+    @ApiProperty({ type: String })
+        studentId: TUserId
+
+    @ApiProperty({ type: String })
+        pageId: TPageId
+
+    @ApiProperty({ type: AnswerWithId, isArray: true })
+        answers: AnswerWithId[]
 }

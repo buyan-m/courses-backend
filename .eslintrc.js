@@ -71,6 +71,13 @@ module.exports = {
                 '@typescript-eslint/semi': [ 'error', 'never' ],
                 '@typescript-eslint/comma-dangle': [ 'error', 'never' ],
             }
+        },
+        {
+            files: [ 'types.d.ts' ],
+            rules: {
+                'max-classes-per-file': 'off',
+                'max-len': 'off'
+            }
         }
     ]
 }

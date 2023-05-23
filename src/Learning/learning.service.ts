@@ -3,7 +3,7 @@ import {
 } from '@nestjs/common'
 import { Model } from 'mongoose'
 import {
-    TTeacher, TStudent, TPage, TLesson, TUserId, TAnswersDTO, TCourseId
+    Teacher, Student, Page, Lesson, TUserId, AnswersDTO, TCourseId
 } from '../types/entities.types'
 import { StudentTypes } from '../constants/student-types'
 import { CourseAndStudentDTO } from './learning.classes'
@@ -13,27 +13,28 @@ import { throwForbidden } from '../utils/errors'
 export class LearningService {
     constructor(
         @Inject('STUDENT_MODEL')
-        private studentModel: Model<TStudent>,
+        private studentModel: Model<Student>,
         @Inject('TEACHER_MODEL')
-        private teacherModel: Model<TTeacher>,
+        private teacherModel: Model<Teacher>,
         @Inject('PAGE_MODEL')
-        private pageModel: Model<TPage>,
+        private pageModel: Model<Page>,
         @Inject('LESSON_MODEL')
-        private lessonModel: Model<TLesson>,
+        private lessonModel: Model<Lesson>,
         @Inject('ANSWER_MODEL')
-        private answerModel: Model<TAnswersDTO>,
+        private answerModel: Model<AnswersDTO>,
     ) {}
 
-    inviteStudent(teacherId: TUserId, courseAndStudentDTO: CourseAndStudentDTO):Promise<TStudent> {
+    async inviteStudent(teacherId: TUserId, courseAndStudentDTO: CourseAndStudentDTO):Promise<Student> {
         // отправить инвайт, а не создать сразу
-        return new this.studentModel( {
+        await new this.studentModel( {
             ...courseAndStudentDTO,
             teacherId,
             type: StudentTypes.active
         }).save()
+        return
     }
 
-    becameTeacher(courseId: TCourseId, teacherId: TUserId): Promise<TTeacher> {
+    becameTeacher(courseId: TCourseId, teacherId: TUserId): Promise<Teacher> {
         return new this.teacherModel( {
             userId: teacherId,
             courseId
@@ -42,7 +43,7 @@ export class LearningService {
 
     async saveAnswers({
         studentId, pageId, answers
-    }: TAnswersDTO) {
+    }: AnswersDTO) {
         const doc = await this.answerModel.findOne({ pageId, studentId })
 
         if (doc) {
@@ -64,7 +65,7 @@ export class LearningService {
         const page = await this.pageModel
             .findById(pageId)
             .select('lessonId')
-            .populate<{ lessonId: TLesson }>('lessonId', 'courseId')
+            .populate<{ lessonId: Lesson }>('lessonId', 'courseId')
 
         const student = await this.studentModel.findOne({
             userId, studentId, courseId: page.lessonId.courseId

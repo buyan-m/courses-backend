@@ -1,3 +1,5 @@
+import { ApiProperty } from '@nestjs/swagger'
+
 export enum EditorBlockType {
     'paragraph' = 'paragraph',
     'heading' = 'heading',
@@ -6,67 +8,82 @@ export enum EditorBlockType {
     'image' = 'image',
     'radio' = 'radio',
     'checkbox' = 'checkbox',
-    'text' = 'text'
+    'input' = 'input'
 }
 
-export type TOption = {
-    value: string,
-    isCorrect: boolean
+export class Option {
+    @ApiProperty()
+        value: string
+
+    @ApiProperty()
+        isCorrect: boolean
 }
 
-export type TEditorBlockParagraph = {
+type TAbstractBlock = {
+    id: string
+}
+
+export type TEditorBlockParagraph = TAbstractBlock & {
     type: EditorBlockType.paragraph,
     data: {
         text: string
     }
 }
 
-export type TEditorBlockHeading = {
+export type TEditorBlockHeading = TAbstractBlock & {
     type: EditorBlockType.heading,
     data: {
         text: string
     }
 }
 
-export type TEditorBlockImage = {
+export type TEditorBlockImage = TAbstractBlock & {
     type: EditorBlockType.image,
     data: {
         url: string
     }
 }
 
-export type TEditorBlockAudio = {
+export type TEditorBlockAudio = TAbstractBlock & {
     type: EditorBlockType.audio,
     data: {
         url: string
     }
 }
 
-export type TEditorBlockVideo = {
+export type TEditorBlockVideo = TAbstractBlock & {
     type: EditorBlockType.video,
     data: {
         videoId: string
     }
 }
 
-export type TEditorBlockRadio = {
+export type TEditorBlockRadio = TAbstractBlock & {
     type: EditorBlockType.radio,
     data: {
-        options: TOption[]
+        options: Option[]
     }
 }
 
-export type TEditorBlockCheckbox = {
+export type TEditorBlockCheckbox = TAbstractBlock & {
     type: EditorBlockType.checkbox,
     data: {
-        options: TOption[]
+        options: Option[]
     }
 }
 
-export type TEditorBlockUnknown = {
+export type TEditorBlockInput = TAbstractBlock & {
+    type: EditorBlockType.input,
+    data: {
+        text: string
+    }
+}
+
+export type TEditorBlockUnknown = TAbstractBlock & {
     type: EditorBlockType,
     data: Record<string, unknown>
 }
 
 export type TEditorBlock = TEditorBlockParagraph | TEditorBlockHeading | TEditorBlockImage |
-TEditorBlockAudio | TEditorBlockVideo | TEditorBlockRadio | TEditorBlockCheckbox | TEditorBlockUnknown
+TEditorBlockAudio | TEditorBlockVideo | TEditorBlockRadio | TEditorBlockCheckbox |
+TEditorBlockInput | TEditorBlockUnknown

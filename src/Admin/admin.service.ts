@@ -1,8 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { Model } from 'mongoose'
 import {
-    TAuth, TCourseDTO, TCourseUpdateDTO, TRole, TUserId
+    Auth, CourseUpdateDTO, Role, TUserId
 } from '../types/entities.types'
+import { CourseDTO } from '../types/editor.classes'
 import { Roles } from '../constants/general-roles'
 import { throwForbidden, throwNotFound } from '../utils/errors'
 
@@ -10,11 +11,11 @@ import { throwForbidden, throwNotFound } from '../utils/errors'
 export class AdminService {
     constructor(
         @Inject('AUTH_MODEL')
-        private authModel: Model<TAuth>,
+        private authModel: Model<Auth>,
         @Inject('ROLE_MODEL')
-        private roleModel: Model<TRole>,
+        private roleModel: Model<Role>,
         @Inject('COURSE_MODEL')
-        private courseModel: Model<TCourseDTO>,
+        private courseModel: Model<CourseDTO>,
     ) {}
 
     async checkGrants(userId) {
@@ -51,7 +52,7 @@ export class AdminService {
         })
     }
 
-    async getCoursesList(userId: TUserId):Promise<TCourseUpdateDTO[]> {
+    async getCoursesList(userId: TUserId):Promise<CourseUpdateDTO[]> {
         await this.checkGrants(userId)
 
         return this.courseModel.find({})

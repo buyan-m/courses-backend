@@ -1,38 +1,38 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { Model } from 'mongoose'
 import {
-    TCourseDTO,
-    TGrant,
-    TLesson,
-    TPage,
-    TUser,
-    TNextPage,
-    TPageViewerDTO,
-    TProgress,
-    TGrantObjectType,
-    TCourseResponse,
-    TLessonResponse
+    Grant,
+    Lesson,
+    Page,
+    User,
+    NextPage,
+    PageViewerDTO,
+    Progress,
+    GrantObjectType,
+    ViewerCourseResponse,
+    ViewerLessonResponse
 } from '../types/entities.types'
+import { CourseDTO } from '../types/editor.classes'
 import { throwNotFound } from '../utils/errors'
 
 @Injectable()
 export class ViewerService {
     constructor(
         @Inject('COURSE_MODEL')
-        private courseModel: Model<TCourseDTO>,
+        private courseModel: Model<CourseDTO>,
         @Inject('GRANT_MODEL')
-        private grantModel: Model<TGrant>,
+        private grantModel: Model<Grant>,
         @Inject('USER_MODEL')
-        private userModel: Model<TUser>,
+        private userModel: Model<User>,
         @Inject('LESSON_MODEL')
-        private lessonModel: Model<TLesson>,
+        private lessonModel: Model<Lesson>,
         @Inject('PAGE_MODEL')
-        private pageModel: Model<TPage>,
+        private pageModel: Model<Page>,
         @Inject('PROGRESS_MODEL')
-        private progressModel: Model<TProgress>
+        private progressModel: Model<Progress>
     ) {}
 
-    getCourse(courseId, userId): Promise<TCourseResponse> {
+    getCourse(courseId, userId): Promise<ViewerCourseResponse> {
         return Promise.all([
             this.courseModel.findById(courseId),
             this.lessonModel.find({ courseId })
@@ -52,14 +52,14 @@ export class ViewerService {
                         this.progressModel.findOne({
                             userId,
                             objectId: lesson.id,
-                            objectType: TGrantObjectType.lesson
+                            objectType: GrantObjectType.lesson
                         })
                     ]).then(([ pages, progress ]) => {
                         return {
                             ...lesson.toObject(),
                             pages: pages,
                             completed: !!progress
-                        } as TLessonResponse
+                        } as ViewerLessonResponse
                     })
                 }
             ))
@@ -72,7 +72,7 @@ export class ViewerService {
         })
     }
 
-    getLesson(lessonId): Promise<TLesson> {
+    getLesson(lessonId): Promise<Lesson> {
         return Promise.all([
             this.lessonModel.findById(lessonId),
             this.pageModel.find({ lessonId }).sort('position')
@@ -85,7 +85,7 @@ export class ViewerService {
         })
     }
 
-    getPage(pageId, userId): Promise<TPageViewerDTO> {
+    getPage(pageId, userId): Promise<PageViewerDTO> {
         const pagePromise = this.pageModel.findById(pageId).exec()
 
         return Promise.all([
@@ -98,7 +98,7 @@ export class ViewerService {
             this.progressModel.find({
                 userId,
                 objectId: pageId,
-                objectType: TGrantObjectType.page
+                objectType: GrantObjectType.page
             })
         ]).then(([ page, length, progress ]) => {
             return {
@@ -110,7 +110,7 @@ export class ViewerService {
 
     }
 
-    async getNextPage(pageId): Promise<TNextPage> {
+    async getNextPage(pageId): Promise<NextPage> {
         // todo remove bottleneck
         const page = await this.pageModel.findById(pageId)
         const neededPage = await this.pageModel.findOne({
@@ -133,13 +133,13 @@ export class ViewerService {
         const alreadyRecorded = await this.progressModel.exists({
             userId,
             objectId: pageId,
-            objectType: TGrantObjectType.page
+            objectType: GrantObjectType.page
         })
         if (!alreadyRecorded) {
             return await new this.progressModel({
                 userId,
                 objectId: pageId,
-                objectType: TGrantObjectType.page
+                objectType: GrantObjectType.page
             }).save()
         }
         return undefined
@@ -149,7 +149,7 @@ export class ViewerService {
         await new this.progressModel({
             userId,
             objectId: lessonId,
-            objectType: TGrantObjectType.lesson
+            objectType: GrantObjectType.lesson
         }).save()
     }
 }

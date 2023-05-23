@@ -3,11 +3,22 @@ import { writeFile, createReadStream } from 'node:fs'
 import { resolve } from 'node:path'
 import type { NestInterceptor } from '@nestjs/common'
 import {
-    Controller, Post, Get, Param, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, StreamableFile
+    Controller,
+    Post,
+    Get,
+    Param,
+    UseInterceptors,
+    UploadedFile,
+    ParseFilePipe,
+    MaxFileSizeValidator,
+    FileTypeValidator,
+    StreamableFile
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { promisify } from 'util'
+import { throwForbidden } from '../utils/errors'
 
+const DEV_MODE = process.env.APP_MODE === 'dev'
 const asyncWriteFile = promisify(writeFile)
 function generateImageName() {
     return randomBytes(15).toString('hex') + '.jpg'
@@ -49,5 +60,14 @@ export class CommonController {
     @Get('health-check')
     healthCheck() {
         return ('')
+    }
+
+    @Get('api-schema')
+    getSchema() {
+        if (DEV_MODE) {
+            const file = createReadStream(resolve( './types.d.ts'))
+            return new StreamableFile(file)
+        }
+        throwForbidden()
     }
 }

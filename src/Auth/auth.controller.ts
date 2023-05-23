@@ -4,10 +4,13 @@ import {
 import { AuthService } from './auth.service'
 import { Response } from 'express'
 import { TOKEN_MAX_AGE } from '../constants/auth-token-age'
-import { AuthDto, RegisterDto } from '../types/auth.classes'
+import {
+    AuthCheckResponse, AuthDto, RegisterDto
+} from '../types/auth.classes'
 import { RoleService } from '../Role/role.service'
 import { Token } from '../utils/extractToken'
 import { throwUnauthorized } from '../utils/errors'
+import { ApiResponse } from '@nestjs/swagger'
 
 @Controller()
 export class AuthController {
@@ -44,6 +47,7 @@ export class AuthController {
     }
 
     @Get('/auth-check')
+    @ApiResponse({ type: AuthCheckResponse })
     async checkAuth(@Token() token: string) {
         const userId = await this.authService.checkAuth(token)
         const roles = await this.roleService.getUserRoles(userId)

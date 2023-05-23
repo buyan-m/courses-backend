@@ -1,43 +1,53 @@
 import { IsNotEmpty, IsString } from 'class-validator'
-import { TCourseId, TLessonId } from './entities.types'
-import { TEditorBlock } from './editor-content.types'
+import { EditorBlockType, TEditorBlock } from './editor-content.types'
+import { ApiProperty } from '@nestjs/swagger'
+import { TLessonId } from './entities.types'
 
 export class CourseDTO {
     @IsString()
     @IsNotEmpty()
+    @ApiProperty()
         name: string
 
     @IsString()
     @IsNotEmpty()
+    @ApiProperty()
         description: string
 }
 
-export class LessonCreateDTO {
+export class EditorPageBlock {
     @IsString()
-    @IsNotEmpty()
-        name: string
+    @ApiProperty()
+        id: string
 
     @IsString()
-    @IsNotEmpty()
-        courseId: TCourseId
+    @ApiProperty()
+        type: EditorBlockType
+
+    @ApiProperty()
+        data: TEditorBlock['data']
 }
 
-export class LessonUpdateDTO extends LessonCreateDTO {
+class EditorPageStructure {
     @IsString()
-    @IsNotEmpty()
-        _id: TLessonId
+    @ApiProperty()
+        version: string
+
+    @ApiProperty({ isArray: true, type: EditorPageBlock })
+        blocks: EditorPageBlock[]
 }
 
 export class PageCreateDTO {
     @IsString()
     @IsNotEmpty()
+    @ApiProperty()
         name: string
 
     @IsString()
     @IsNotEmpty()
-        lessonId: string
+    @ApiProperty()
+        lessonId: TLessonId
 
-    structure: {
-        blocks: TEditorBlock[]
-    }
+    @ApiProperty()
+        structure: EditorPageStructure
 }

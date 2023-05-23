@@ -5,8 +5,9 @@ import { Token } from '../utils/extractToken'
 import { LearningService } from './learning.service'
 import { CourseAndStudentDTO } from './learning.classes'
 import { AuthService } from '../Auth/auth.service'
-import { TAnswersDTO, TCourseId } from '../types/entities.types'
+import { AnswersDTO, TCourseId } from '../types/entities.types'
 import { ObjectIdValidationPipe } from '../utils/object-id'
+import { ApiResponse } from '@nestjs/swagger'
 
 @Controller('learning')
 export class LearningController {
@@ -35,7 +36,11 @@ export class LearningController {
     }
 
     @Put('save-answers/:pageId')
-    async savePageAnswers(@Param('pageId', ObjectIdValidationPipe) pageId, @Token() token: string, @Body() body: TAnswersDTO) {
+    async savePageAnswers(
+    @Param('pageId', ObjectIdValidationPipe) pageId,
+        @Token() token: string,
+        @Body() body: AnswersDTO
+    ) {
         const studentId = await this.authService.getUserId(token)
         // Кажется нужно еще чекать версию документа
         return this.learningService.saveAnswers({
@@ -46,26 +51,32 @@ export class LearningController {
     }
 
     @Post('reset-answers/:pageId')
-    resetAnswers(@Param('pageId', ObjectIdValidationPipe) pageId, @Token() token: string, @Body() commentAndStudentId: unknown) {
+    resetAnswers(
+    @Param('pageId', ObjectIdValidationPipe) pageId,
+        @Token() token: string,
+        @Body() commentAndStudentId: unknown
+    ) {
         // сбросить ответы ученика и дать общий комментарий
         // комментарий в систему оповещений отправить
     }
 
     @Get('answers/:pageId')
+    @ApiResponse({ type: AnswersDTO })
     async getOwnSavedAnswers(
-    @Param('pageId', ObjectIdValidationPipe) pageId: string,
-        @Token() token: string
-    ) {
+        @Param('pageId', ObjectIdValidationPipe) pageId: string,
+            @Token() token: string
+    ): Promise<AnswersDTO> {
         const studentId = await this.authService.getUserId(token)
         return this.learningService.getOwnAnswers(studentId, pageId)
     }
 
     @Get('answers/:pageId/:studentId')
+    @ApiResponse({ type: AnswersDTO })
     async getSavedAnswers(
-    @Param('pageId', ObjectIdValidationPipe) pageId,
-        @Param('studentId', ObjectIdValidationPipe) studentId,
-        @Token() token: string
-    ) {
+        @Param('pageId', ObjectIdValidationPipe) pageId,
+            @Param('studentId', ObjectIdValidationPipe) studentId,
+            @Token() token: string
+    ): Promise<AnswersDTO> {
         // пойти в сервис и забрать ответы, которые уже есть на странице + фидбэк
         const userId = await this.authService.getUserId(token)
         return this.learningService.getAnswers(userId, pageId, studentId)

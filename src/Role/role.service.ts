@@ -1,12 +1,12 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { Model } from 'mongoose'
-import { TRole } from '../types/entities.types'
+import { Role } from '../types/entities.types'
 
 @Injectable()
 export class RoleService {
     constructor(
         @Inject('ROLE_MODEL')
-        private roleModel: Model<TRole>
+        private roleModel: Model<Role>
     ) {}
 
     getUserRoles(userId){
