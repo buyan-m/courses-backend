@@ -11,3 +11,7 @@ export function throwNotFound() {
 export function throwUnauthorized() {
     throw new HttpException('Error: Unauthorized', HttpStatus.UNAUTHORIZED)
 }
+
+export function throwUnprocessable(details: string) {
+    throw new HttpException(`Error: Unprocessable Content: ${details}`, HttpStatus.UNPROCESSABLE_ENTITY)
+}

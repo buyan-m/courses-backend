@@ -3,7 +3,7 @@ import {
     TCourseId,
     TLessonId,
     TPageId,
-    CourseResponse,
+    EditorCourseResponse,
     LessonResponse,
     ViewerLessonResponse,
     ViewerCourseResponse,

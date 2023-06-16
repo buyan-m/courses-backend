@@ -14,5 +14,8 @@ export const StudentSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Course'
     },
-    type: Object.keys(StudentTypes)
+    type: {
+        type: String,
+        enum: Object.keys(StudentTypes)
+    }
 })

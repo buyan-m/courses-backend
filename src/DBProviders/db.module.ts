@@ -11,6 +11,7 @@ import { databaseProvider } from './connection.db.provider'
 import { teacherProvider } from './teacher.db.provider'
 import { studentProvider } from './student.db.provider'
 import { answerProvider } from './answer.db.provider'
+import { shareCodeProvider } from './share-code.db.provider'
 
 @Module({
     exports: [
@@ -25,7 +26,8 @@ import { answerProvider } from './answer.db.provider'
         progressProvider,
         teacherProvider,
         studentProvider,
-        answerProvider
+        answerProvider,
+        shareCodeProvider
     ],
     providers: [
         databaseProvider,
@@ -40,7 +42,8 @@ import { answerProvider } from './answer.db.provider'
         progressProvider,
         teacherProvider,
         studentProvider,
-        answerProvider
+        answerProvider,
+        shareCodeProvider
     ]
 })
 export class DBModule {}

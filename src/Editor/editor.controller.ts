@@ -18,7 +18,7 @@ import {
     CourseCreateResponse, EditorLessonCreateResponse, EditorPageCreateResponse
 } from '../types/outputs'
 import {
-    CourseResponse,
+    EditorCourseResponse,
     LessonResponse
 } from '../types/entities.types'
 
@@ -58,7 +58,7 @@ export class EditorController {
     }
 
     @Get('courses/:courseId')
-    @ApiResponse({ status: 200, type: CourseResponse })
+    @ApiResponse({ status: 200, type: EditorCourseResponse })
     async getCourse(@Param('courseId', ObjectIdValidationPipe) courseId, @Token() token: string) {
         const userId = await this.authService.getUserId(token)
         const grant = await this.editorService.checkGrants(userId, courseId, GrantObjectType.course)

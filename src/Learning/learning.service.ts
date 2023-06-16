@@ -13,6 +13,7 @@ import { throwForbidden, throwNotFound } from '../utils/errors'
 import { TAnswer } from '../types/entities.types'
 import { OkResponse } from '../utils/emptyResponse'
 import { AnswerStates } from '../constants/answer-states'
+import { TeacherTypes } from '../constants/teacher-types'
 
 @Injectable()
 export class LearningService {
@@ -67,11 +68,33 @@ export class LearningService {
         return this.studentModel.find(filter).select('courseId userId')
     }
 
-    becameTeacher(courseId: TCourseId, teacherId: TUserId): Promise<Teacher> {
-        return new this.teacherModel( {
+    async becomeTeacher(courseId: TCourseId, teacherId: TUserId): Promise<Teacher> {
+        const teacher = await this.teacherModel.findOne({
             userId: teacherId,
             courseId
-        }).save()
+        })
+
+        if (!teacher) {
+            return new this.teacherModel( {
+                userId: teacherId,
+                courseId,
+                type: TeacherTypes.active
+            }).save()
+        }
+
+        if (teacher.type === TeacherTypes.archive) {
+            teacher.type = TeacherTypes.active
+            return teacher.save()
+        }
+
+        return teacher
+    }
+
+    archiveTeacher(courseId: TCourseId, teacherId: TUserId) {
+        return this.teacherModel.findOneAndUpdate({
+            userId: teacherId,
+            courseId
+        }, { $set: { type: TeacherTypes.archive } })
     }
 
     async saveAnswers({
@@ -165,7 +188,7 @@ export class LearningService {
                 idIndex[id].feedback = answer.feedback
             })
             answerDoc.save()
-            return new OkResponse()
+            return
         }
         throwForbidden()
     }
