@@ -10,7 +10,7 @@ import {
     CourseAndStudentDTO, LearningPageDTO, TUpdateFeedbackDTO
 } from './learning.classes'
 import { throwForbidden, throwNotFound } from '../utils/errors'
-import { TAnswer } from 'types/entities.types'
+import { TAnswer } from '../types/entities.types'
 import { OkResponse } from '../utils/emptyResponse'
 import { AnswerStates } from '../constants/answer-states'
 
