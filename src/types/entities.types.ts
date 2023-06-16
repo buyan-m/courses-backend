@@ -11,6 +11,10 @@ import {
 } from 'class-validator'
 import { Type } from 'class-transformer'
 
+import { ShareCodeDTO } from '../ShareCode/share-code.classes'
+import { TeacherTypes } from '../constants/teacher-types'
+import { CourseRoles } from '../Learning/learning.classes'
+
 export type TCourseId = Types.ObjectId
 export type TLessonId = Types.ObjectId
 export type TPageId = Types.ObjectId
@@ -72,11 +76,17 @@ export class ViewerLessonResponse extends LessonResponse {
 }
 
 export class ViewerCourseResponse extends CourseDTO {
+    @ApiProperty({ type: String })
+        _id: TCourseId
+
     @ApiProperty({ isArray: true, type: ViewerLessonResponse })
         lessons: ViewerLessonResponse[]
+
+    @ApiProperty({ type: String, enum: Object.keys(CourseRoles) })
+        role: CourseRoles
 }
 
-export class CourseResponse extends CourseDTO {
+export class EditorCourseResponse extends CourseDTO {
     @ApiProperty({ type: String })
         _id: TCourseId
 
@@ -182,6 +192,8 @@ export class Teacher {
     userId: TUserId
 
     courseId: TCourseId
+
+    type: TeacherTypes
 }
 
 export class Student {

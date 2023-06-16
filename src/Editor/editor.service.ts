@@ -11,12 +11,14 @@ import {
     TPageId,
     TLessonId,
     LessonUpdateDTO,
-    CourseResponse,
-    LessonResponse
+    LessonResponse,
+    EditorCourseResponse,
+    Teacher
 } from '../types/entities.types'
 import { CourseDTO, PageCreateDTO } from '../types/editor.classes'
 import { throwNotFound } from '../utils/errors'
 import { CourseCreateResponse } from '../types/outputs'
+import { TeacherTypes } from '../constants/teacher-types'
 
 @Injectable()
 export class EditorService {
@@ -30,7 +32,9 @@ export class EditorService {
         @Inject('LESSON_MODEL')
         private lessonModel: Model<Lesson>,
         @Inject('PAGE_MODEL')
-        private pageModel: Model<Page>
+        private pageModel: Model<Page>,
+        @Inject('TEACHER_MODEL')
+        private teacherModel: Model<Teacher>
     ) {}
 
     async createCourse(course: CourseDTO, userId: TUserId): Promise<CourseCreateResponse> {
@@ -41,7 +45,12 @@ export class EditorService {
                 objectType: GrantObjectType['course'],
                 userId
             }).save(),
-            createdCourse.save()
+            createdCourse.save(),
+            new this.teacherModel( {
+                userId,
+                courseId: createdCourse._id,
+                type: TeacherTypes.active
+            }).save()
         ])
         return { courseId: createdCourse._id }
     }
@@ -51,7 +60,7 @@ export class EditorService {
         return { courseId }
     }
 
-    getCourse(courseId: TCourseId): Promise<CourseResponse> {
+    getCourse(courseId: TCourseId): Promise<EditorCourseResponse> {
         return Promise.all([
             this.lessonModel.find({ courseId })
                 .then(async (lessons) => {

@@ -3,7 +3,9 @@ import {
 } from '@nestjs/common'
 import { Token } from '../utils/extractToken'
 import { LearningService } from './learning.service'
-import { CourseAndStudentDTO, TUpdateFeedbackDTO } from './learning.classes'
+import {
+    CourseAndStudentDTO, CourseAndShareCodeDTO, TUpdateFeedbackDTO
+} from './learning.classes'
 import { AuthService } from '../Auth/auth.service'
 import {
     AnswersDTO, Student, TCourseId, PageAnswers
@@ -11,22 +13,28 @@ import {
 import { ObjectIdValidationPipe } from '../utils/object-id'
 import { ApiResponse } from '@nestjs/swagger'
 import { OkResponse } from '../utils/emptyResponse'
+import { ShareCodeService } from '../ShareCode/share-code.service'
 
 @Controller('learning')
 export class LearningController {
     constructor(
         private readonly learningService: LearningService,
         private readonly authService: AuthService,
+        private readonly shareCodeService: ShareCodeService,
     ) {}
 
     @Post('invite')
     async inviteStudent(
-        @Body() courseAndStudentDTO: CourseAndStudentDTO,
+        @Body() courseAndShareCodeDTO: CourseAndShareCodeDTO,
             @Token() token: string
     ): Promise<OkResponse> {
         // проверить учитель ли этот пользователь
         const teacherId = await this.authService.getUserId(token)
-        await this.learningService.inviteStudent(teacherId, courseAndStudentDTO)
+        const result = await this.shareCodeService.checkCode(courseAndShareCodeDTO.shareCode)
+        await this.learningService.inviteStudent(teacherId, {
+            userId: result.userId.toString(),
+            courseId: courseAndShareCodeDTO.courseId
+        })
         return new OkResponse()
     }
 
@@ -45,13 +53,23 @@ export class LearningController {
         return this.learningService.getTeacherStudents(teacherId)
     }
 
-    @Post('became-teacher/:courseId')
-    async becameTeacher(
+    @Put('become-teacher/:courseId')
+    async becomeTeacher(
         @Param('courseId', ObjectIdValidationPipe) courseId: TCourseId,
             @Token() token: string
     ): Promise<OkResponse> {
         const teacherId = await this.authService.getUserId(token)
-        await this.learningService.becameTeacher(courseId, teacherId)
+        await this.learningService.becomeTeacher(courseId, teacherId)
+        return new OkResponse()
+    }
+
+    @Put('archive-teacher/:courseId')
+    async archiveTeacher(
+    @Param('courseId', ObjectIdValidationPipe) courseId: TCourseId,
+        @Token() token: string
+    ) {
+        const teacherId = await this.authService.getUserId(token)
+        await this.learningService.archiveTeacher(courseId, teacherId)
         return new OkResponse()
     }
 
@@ -104,7 +122,6 @@ export class LearningController {
             @Param('studentId', ObjectIdValidationPipe) studentId,
             @Token() token: string
     ): Promise<PageAnswers> {
-        // пойти в сервис и забрать ответы, которые уже есть на странице + фидбэк
         const userId = await this.authService.getUserId(token)
         return this.learningService.getAnswers({
             teacherId: userId, pageId, studentId
@@ -119,9 +136,9 @@ export class LearningController {
         @Body() feedback: TUpdateFeedbackDTO['feedback']
     ) {
         const teacherId = await this.authService.getUserId(token)
-        return this.learningService.updateFeedback({
+        await this.learningService.updateFeedback({
             teacherId, studentId, pageId, feedback
         })
-        // пойти в сервис и дополнить ответы фидбэком, проверкой и т.д.
+        return new OkResponse()
     }
 }
