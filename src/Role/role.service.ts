@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { Model } from 'mongoose'
-import { Role } from '../types/entities.types'
+import { Role, TUserId } from '../types/entities.types'
 
 @Injectable()
 export class RoleService {
@@ -9,7 +9,7 @@ export class RoleService {
         private roleModel: Model<Role>
     ) {}
 
-    getUserRoles(userId){
+    getUserRoles(userId: TUserId){
         return this.roleModel.find({ userId })
     }
 }

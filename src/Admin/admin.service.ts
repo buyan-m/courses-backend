@@ -18,7 +18,7 @@ export class AdminService {
         private courseModel: Model<CourseDTO>,
     ) {}
 
-    async checkGrants(userId) {
+    async checkGrants(userId: string | TUserId) {
         const role = await this.roleModel.findOne({ userId, role: Roles.admin })
         if (!role) {
             throwForbidden()

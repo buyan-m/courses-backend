@@ -26,7 +26,8 @@ ${preparedTypes}
 const preparedTypes = readFileSync(resolve('./declarations.d.ts')).toString()
     .replace(/declare\smodule\s".+" {/g, '')
     .replace(/import\s[^}]+}.+\n/g, '')
-    .replace(/\s=\sTypes.ObjectId;\n/g, ' = string\n')
+    .replace(/\s=\sTypes.ObjectId;\n/g, ' = string;\n')
+    .replace(/:\sDate;\n/g, ': string;\n')
 
 const curedText = cureClosingCurlyBraces(preparedTypes)
 

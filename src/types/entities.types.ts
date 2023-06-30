@@ -35,6 +35,8 @@ export class Grant {
 }
 
 export class User {
+    _id: TUserId
+
     name: string
 }
 
@@ -101,12 +103,15 @@ export class CourseUpdateDTO extends CourseDTO {
 
 export class EditorBlock {
     @ApiProperty()
+        id: string
+
+    @ApiProperty()
         type: string
 
     @ApiProperty()
         data: unknown
 }
-class PageStructure {
+export class PageStructure {
     @IsString()
     @ApiProperty()
         version: string
@@ -119,6 +124,10 @@ class PageStructure {
         blocks: TEditorBlock[]
 }
 export class Page {
+    @ApiProperty()
+    @IsString()
+        _id: TPageId
+
     @ApiProperty({ type: PageStructure })
     @IsNotEmptyObject()
     @IsObject()
@@ -276,10 +285,10 @@ export class AnswersDTO {
 export class PageAnswers extends AnswersDTO {
     @IsString()
     @ApiProperty({ type: String })
-        studentId: TUserId
+        studentId: string
 
     @IsString()
     @ApiProperty({ type: String })
-        pageId: TPageId
+        pageId: string
 
 }

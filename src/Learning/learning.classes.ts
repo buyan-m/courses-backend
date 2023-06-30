@@ -39,16 +39,16 @@ export type TAnswerFeedback = {
 }
 
 export type TUpdateFeedbackDTO = {
-    teacherId,
-    studentId,
-    pageId,
+    teacherId: string,
+    studentId: string,
+    pageId: string,
     feedback: Record<string, TAnswerFeedback>
 }
 
 export class LearningPageDTO {
     @IsString()
     @IsNotEmpty()
-        teacherId: TUserId
+        teacherId: string
 
     @IsString()
     @IsNotEmpty()

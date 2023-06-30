@@ -11,7 +11,6 @@ import {
 } from './learning.classes'
 import { throwForbidden, throwNotFound } from '../utils/errors'
 import { TAnswer } from '../types/entities.types'
-import { OkResponse } from '../utils/emptyResponse'
 import { AnswerStates } from '../constants/answer-states'
 import { TeacherTypes } from '../constants/teacher-types'
 
@@ -120,7 +119,7 @@ export class LearningService {
 
     async getOwnAnswers(userId: TUserId, pageId: string) {
         return this.getAnswers({
-            teacherId: userId,
+            teacherId: userId.toString(),
             pageId,
             studentId: userId.toString()
         })
@@ -166,7 +165,9 @@ export class LearningService {
         teacherId, studentId, pageId, feedback
     }: TUpdateFeedbackDTO) {
         const isLearningAvailable = await this.checkTeacherForStudent({
-            teacherId, studentId, pageId
+            teacherId: teacherId.toString(),
+            studentId,
+            pageId
         })
         if (isLearningAvailable) {
             const answerDoc = await this.answerModel.findOne({
@@ -178,10 +179,10 @@ export class LearningService {
                 throwNotFound()
             }
             // а если заново курс проходить? или одновременно с двумя учителями?
-            const idIndex: Record<string, TAnswer> = answerDoc.answers.reduce((acc, el) => {
+            const idIndex = answerDoc.answers.reduce((acc, el) => {
                 acc[el.id] = el.answer
                 return acc
-            }, {})
+            }, {} as Record<string, TAnswer>)
 
             Object.entries(feedback).forEach(([ id, answer ]) => {
                 idIndex[id].correctness = answer.correctness

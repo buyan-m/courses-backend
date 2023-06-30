@@ -6,7 +6,9 @@ import { AuthService } from '../Auth/auth.service'
 import {
     GrantObjectType, Page, Lesson, LessonUpdateDTO
 } from '../types/entities.types'
-import { CourseDTO, PageCreateDTO } from '../types/editor.classes'
+import {
+    CourseDTO, PageCreateDTO, PageUpdateDTO
+} from '../types/editor.classes'
 
 import { Token } from '../utils/extractToken'
 import { Roles } from '../constants/general-roles'
@@ -45,7 +47,7 @@ export class EditorController {
     @Post('courses/:courseId')
     @ApiResponse({ status: 200, type: CourseCreateResponse })
     async updateCourse(
-    @Param('courseId', ObjectIdValidationPipe) courseId,
+    @Param('courseId', ObjectIdValidationPipe) courseId: string,
         @Body() course: CourseDTO,
         @Token() token: string
     ) {
@@ -59,7 +61,7 @@ export class EditorController {
 
     @Get('courses/:courseId')
     @ApiResponse({ status: 200, type: EditorCourseResponse })
-    async getCourse(@Param('courseId', ObjectIdValidationPipe) courseId, @Token() token: string) {
+    async getCourse(@Param('courseId', ObjectIdValidationPipe) courseId: string, @Token() token: string) {
         const userId = await this.authService.getUserId(token)
         const grant = await this.editorService.checkGrants(userId, courseId, GrantObjectType.course)
         if (!grant) {
@@ -96,7 +98,7 @@ export class EditorController {
     @Post('lessons/:lessonId')
     @ApiResponse({ status: 200, type: EditorLessonCreateResponse })
     async updateLesson(
-        @Param('lessonId', ObjectIdValidationPipe) lessonId,
+        @Param('lessonId', ObjectIdValidationPipe) lessonId: string,
             @Body() lesson: LessonUpdateDTO,
             @Token() token: string
     ): Promise<EditorLessonCreateResponse> {
@@ -111,7 +113,7 @@ export class EditorController {
     @Get('lessons/:lessonId')
     @ApiResponse({ status: 200, type: LessonResponse })
     async getLesson(
-        @Param('lessonId', ObjectIdValidationPipe) lessonId,
+        @Param('lessonId', ObjectIdValidationPipe) lessonId: string,
             @Token() token: string
     ): Promise<LessonResponse> {
         const userId = await this.authService.getUserId(token)
@@ -141,8 +143,8 @@ export class EditorController {
     @Put('pages/:pageId')
     @ApiResponse({ status: 200, type: EditorPageCreateResponse })
     async updatePage(
-        @Param('pageId', ObjectIdValidationPipe) pageId,
-            @Body() page: Page,
+        @Param('pageId', ObjectIdValidationPipe) pageId: string,
+            @Body() page: PageUpdateDTO,
             @Token() token: string
     ): Promise<EditorPageCreateResponse> {
         const userId = await this.authService.getUserId(token)
@@ -156,7 +158,7 @@ export class EditorController {
     @Get('pages/:pageId')
     @ApiResponse({ status: 200, type: Page })
     async getPage(
-        @Param('pageId', ObjectIdValidationPipe) pageId,
+        @Param('pageId', ObjectIdValidationPipe) pageId: string,
             @Token() token: string
     ): Promise<Page> {
         const userId = await this.authService.getUserId(token)
@@ -169,7 +171,7 @@ export class EditorController {
 
     @Delete('pages/:pageId')
     async deletePage(
-    @Param('pageId', ObjectIdValidationPipe) pageId,
+    @Param('pageId', ObjectIdValidationPipe) pageId: string,
         @Token() token: string
     ) {
         const userId = await this.authService.getUserId(token)

@@ -14,7 +14,7 @@ export class ShareCodeController {
 
     @Get('')
     @ApiResponse({ type: ShareCodeDTO })
-    async getOwnCode(@Token() token):Promise<ShareCodeDTO> {
+    async getOwnCode(@Token() token: string):Promise<ShareCodeDTO> {
         const userId = await this.authService.getUserId(token)
         return this.shareCodeService.getOwnCode(userId)
     }
