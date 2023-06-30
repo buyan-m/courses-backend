@@ -17,8 +17,8 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express'
 import { promisify } from 'util'
 import { throwForbidden } from '../utils/errors'
+import { DEV_MODE } from '../constants/dev-mode'
 
-const DEV_MODE = process.env.APP_MODE === 'dev'
 const asyncWriteFile = promisify(writeFile)
 function generateImageName() {
     return randomBytes(15).toString('hex') + '.jpg'

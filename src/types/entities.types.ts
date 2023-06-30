@@ -292,3 +292,9 @@ export class PageAnswers extends AnswersDTO {
         pageId: string
 
 }
+
+export class PaginationInfo {
+    @IsNumber()
+    @ApiProperty({ type: Number })
+        totalCount: number
+}

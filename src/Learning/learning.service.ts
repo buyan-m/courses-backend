@@ -67,6 +67,14 @@ export class LearningService {
         return this.studentModel.find(filter).select('courseId userId')
     }
 
+    async getStudentTeachers({ studentId, courseId }: {studentId: string, courseId: string}): Promise<Student[]> {
+        return this.studentModel.find({
+            type: StudentTypes.active,
+            userId: studentId,
+            courseId
+        })
+    }
+
     async becomeTeacher(courseId: TCourseId, teacherId: TUserId): Promise<Teacher> {
         const teacher = await this.teacherModel.findOne({
             userId: teacherId,

@@ -4,16 +4,19 @@ import {
 import { Token } from '../utils/extractToken'
 import { LearningService } from './learning.service'
 import {
-    CourseAndStudentDTO, CourseAndShareCodeDTO, TUpdateFeedbackDTO
+    CourseAndShareCodeDTO, CourseAndStudentDTO, TUpdateFeedbackDTO
 } from './learning.classes'
 import { AuthService } from '../Auth/auth.service'
 import {
-    AnswersDTO, Student, TCourseId, PageAnswers
+    AnswersDTO, PageAnswers, Student, TCourseId
 } from '../types/entities.types'
 import { ObjectIdValidationPipe } from '../utils/object-id'
 import { ApiResponse } from '@nestjs/swagger'
 import { OkResponse } from '../utils/emptyResponse'
 import { ShareCodeService } from '../ShareCode/share-code.service'
+import { NotificationService } from '../Notification/notification.service'
+import { FeedbackReceivedNotificationCreateDTO, NotificationTypes } from '../Notification/notification.classes'
+import { ViewerService } from '../Viewer/viewer.service'
 
 @Controller('learning')
 export class LearningController {
@@ -21,6 +24,8 @@ export class LearningController {
         private readonly learningService: LearningService,
         private readonly authService: AuthService,
         private readonly shareCodeService: ShareCodeService,
+        private readonly notificationService: NotificationService,
+        private readonly viewerService: ViewerService,
     ) {}
 
     @Post('invite')
@@ -34,6 +39,16 @@ export class LearningController {
         await this.learningService.inviteStudent(teacherId, {
             userId: result.userId.toString(),
             courseId: courseAndShareCodeDTO.courseId
+        })
+
+        // Может быть асинхронной очередью в дальнейшем
+        await this.notificationService.createNotification({
+            userId: result.userId.toString(),
+            type: NotificationTypes.courseInvitation,
+            details: {
+                courseId: courseAndShareCodeDTO.courseId,
+                inviterId: teacherId.toString()
+            }
         })
         return new OkResponse()
     }
@@ -81,11 +96,36 @@ export class LearningController {
     ) {
         const studentId = await this.authService.getUserId(token)
         // Кажется нужно еще чекать версию документа
-        return this.learningService.saveAnswers({
-            studentId,
-            pageId,
+        const answers = await this.learningService.saveAnswers({
+            studentId: studentId.toString(),
+            pageId: pageId,
             answers: body.answers
         })
+
+        // можно вынести в очередь потом
+        try {
+            const page = await this.viewerService.getCourseIdByPageId(pageId)
+            const teachers = await this.learningService.getStudentTeachers({
+                studentId: studentId.toString(),
+                courseId: page.lessonId.courseId.toString()
+            })
+
+            await Promise.all(teachers.map((teacher) => (
+                this.notificationService.createNotification({
+                    userId: teacher.teacherId.toString(),
+                    type: NotificationTypes.pagePass,
+                    details: {
+                        courseId: page.lessonId.courseId.toString(),
+                        lessonId: page.lessonId._id.toString(),
+                        studentId: studentId.toString(),
+                        pageId: pageId
+                    }
+                })
+            )))
+        }
+        catch (e) {}
+
+        return answers
     }
 
     @Delete('answers/:pageId/:studentId')
@@ -142,6 +182,20 @@ export class LearningController {
             pageId,
             feedback
         })
+
+        const page = await this.viewerService.getCourseIdByPageId(pageId)
+        // можно вынести в очередь потом
+        await this.notificationService.createNotification({
+            userId: studentId,
+            type: NotificationTypes.feedbackReceived,
+            details: {
+                courseId: page.lessonId.courseId.toString(),
+                lessonId: page.lessonId._id.toString(),
+                teacherId: teacherId.toString(),
+                pageId: pageId
+            }
+        } as FeedbackReceivedNotificationCreateDTO)
+
         return new OkResponse()
     }
 }
