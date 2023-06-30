@@ -1,7 +1,10 @@
-import { IsNotEmpty, IsString } from 'class-validator'
+import {
+    IsBoolean, IsNotEmpty, IsNotEmptyObject, IsNumber, IsObject, IsString, ValidateNested
+} from 'class-validator'
 import { EditorBlockType, TEditorBlock } from './editor-content.types'
 import { ApiProperty } from '@nestjs/swagger'
 import { TLessonId } from './entities.types'
+import { Type } from 'class-transformer'
 
 export class CourseDTO {
     @IsString()
@@ -24,16 +27,22 @@ export class EditorPageBlock {
     @ApiProperty()
         type: EditorBlockType
 
-    @ApiProperty()
+    @ApiProperty({ type: Object })
         data: TEditorBlock['data']
 }
 
 class EditorPageStructure {
+    @IsNumber()
+    @ApiProperty()
+        time: number
+
     @IsString()
     @ApiProperty()
         version: string
 
     @ApiProperty({ isArray: true, type: EditorPageBlock })
+    @ValidateNested()
+    @Type(() => EditorPageBlock)
         blocks: EditorPageBlock[]
 }
 
@@ -48,6 +57,20 @@ export class PageCreateDTO {
     @ApiProperty()
         lessonId: TLessonId
 
-    @ApiProperty()
+    @ApiProperty({ type: EditorPageStructure })
+    @IsNotEmptyObject()
+    @IsObject()
+    @ValidateNested()
+    @Type(() => EditorPageStructure)
         structure: EditorPageStructure
+
+    @ApiProperty()
+    @IsBoolean()
+        isAnswersVisible: boolean
+}
+
+export class PageUpdateDTO extends PageCreateDTO {
+    @IsNumber()
+    @ApiProperty({ type: Number })
+        position: number
 }

@@ -75,7 +75,7 @@ export class LearningController {
 
     @Put('save-answers/:pageId')
     async savePageAnswers(
-    @Param('pageId', ObjectIdValidationPipe) pageId,
+    @Param('pageId', ObjectIdValidationPipe) pageId: string,
         @Token() token: string,
         @Body() body: AnswersDTO
     ) {
@@ -90,15 +90,15 @@ export class LearningController {
 
     @Delete('answers/:pageId/:studentId')
     async resetAnswers(
-    @Param('pageId', ObjectIdValidationPipe) pageId,
-        @Param('studentId', ObjectIdValidationPipe) studentId,
+    @Param('pageId', ObjectIdValidationPipe) pageId: string,
+        @Param('studentId', ObjectIdValidationPipe) studentId: string,
         @Token() token: string,
         @Body() comment?: unknown
     ) {
         const teacherId = await this.authService.getUserId(token)
 
         await this.learningService.resetAnswers({
-            teacherId, studentId, pageId
+            teacherId: teacherId.toString(), studentId, pageId
         })
 
         // комментарий в систему оповещений отправить
@@ -118,26 +118,29 @@ export class LearningController {
     @Get('answers/:pageId/:studentId')
     @ApiResponse({ type: PageAnswers })
     async getSavedAnswers(
-        @Param('pageId', ObjectIdValidationPipe) pageId,
-            @Param('studentId', ObjectIdValidationPipe) studentId,
+        @Param('pageId', ObjectIdValidationPipe) pageId: string,
+            @Param('studentId', ObjectIdValidationPipe) studentId: string,
             @Token() token: string
     ): Promise<PageAnswers> {
         const userId = await this.authService.getUserId(token)
         return this.learningService.getAnswers({
-            teacherId: userId, pageId, studentId
+            teacherId: userId.toString(), pageId, studentId
         })
     }
 
     @Put('answers-feedback/:pageId/:studentId')
     async createFeedbackToAnswers(
-    @Param('pageId', ObjectIdValidationPipe) pageId,
-        @Param('studentId', ObjectIdValidationPipe) studentId,
+    @Param('pageId', ObjectIdValidationPipe) pageId: string,
+        @Param('studentId', ObjectIdValidationPipe) studentId: string,
         @Token() token: string,
         @Body() feedback: TUpdateFeedbackDTO['feedback']
     ) {
         const teacherId = await this.authService.getUserId(token)
         await this.learningService.updateFeedback({
-            teacherId, studentId, pageId, feedback
+            teacherId: teacherId.toString(),
+            studentId,
+            pageId,
+            feedback
         })
         return new OkResponse()
     }

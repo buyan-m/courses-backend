@@ -2,10 +2,7 @@ import {
     Controller, Get, Post, Param, Query
 } from '@nestjs/common'
 import { ViewerService } from './viewer.service'
-import {
-    NextPage,
-    TCourseId, TLessonId, TPageId
-} from '../types/entities.types'
+import { NextPage } from '../types/entities.types'
 import {
     ViewerCourseResponse, ViewerLessonResponse, PageViewerDTO as ViewerPageResponse
 } from '../types/entities.types'
@@ -37,7 +34,7 @@ export class ViewerController {
 
     @Get('courses/:courseId')
     @ApiResponse({ status: 200, type: ViewerCourseResponse })
-    async getCourse(@Param('courseId', ObjectIdValidationPipe) courseId: TCourseId, @Token() token: string) {
+    async getCourse(@Param('courseId', ObjectIdValidationPipe) courseId: string, @Token() token: string) {
         const userId = await this.authService.getUserId(token)
 
         return await this.viewerService.getCourse(courseId, userId)
@@ -45,13 +42,13 @@ export class ViewerController {
 
     @Get('lessons/:lessonId')
     @ApiResponse({ status: 200, type: ViewerLessonResponse })
-    getLesson(@Param('lessonId', ObjectIdValidationPipe) lessonId: TLessonId) {
+    getLesson(@Param('lessonId', ObjectIdValidationPipe) lessonId: string) {
         return this.viewerService.getLesson(lessonId)
     }
 
     @Get('pages/:pageId')
     @ApiResponse({ status: 200, type: ViewerPageResponse })
-    async getPage(@Param('pageId', ObjectIdValidationPipe) pageId: TPageId, @Token() token: string) {
+    async getPage(@Param('pageId', ObjectIdValidationPipe) pageId: string, @Token() token: string) {
         const userId = await this.authService.getUserId(token)
         return this.viewerService.getPage(pageId, userId)
     }
@@ -59,8 +56,8 @@ export class ViewerController {
     @Post('pages/:pageId/next')
     @ApiResponse({ type: NextPage })
     async completePage(
-        @Param('pageId', ObjectIdValidationPipe) pageId: TPageId,
-            @Token() token
+        @Param('pageId', ObjectIdValidationPipe) pageId: string,
+            @Token() token: string
     ): Promise<NextPage> {
         const userId = await this.authService.getUserId(token)
         await this.viewerService.completePage(pageId, userId)
@@ -69,7 +66,7 @@ export class ViewerController {
 
     @Post('lessons/:lessonId/complete')
     async completeLesson(
-        @Param('lessonId', ObjectIdValidationPipe) lessonId: TLessonId,
+        @Param('lessonId', ObjectIdValidationPipe) lessonId: string,
             @Token() token: string
     ): Promise<void> {
         const userId = await this.authService.getUserId(token)

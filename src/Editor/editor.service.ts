@@ -1,21 +1,20 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { Model } from 'mongoose'
 import {
-    TCourseId,
     TUserId,
     Grant,
     GrantObjectType,
     User,
     Lesson,
     Page,
-    TPageId,
-    TLessonId,
     LessonUpdateDTO,
     LessonResponse,
     EditorCourseResponse,
     Teacher
 } from '../types/entities.types'
-import { CourseDTO, PageCreateDTO } from '../types/editor.classes'
+import {
+    CourseDTO, PageCreateDTO, PageUpdateDTO
+} from '../types/editor.classes'
 import { throwNotFound } from '../utils/errors'
 import { CourseCreateResponse } from '../types/outputs'
 import { TeacherTypes } from '../constants/teacher-types'
@@ -55,12 +54,12 @@ export class EditorService {
         return { courseId: createdCourse._id }
     }
 
-    async updateCourse(courseId: TCourseId, course: CourseDTO): Promise<CourseCreateResponse> {
-        await this.courseModel.findByIdAndUpdate(courseId, course)
-        return { courseId }
+    async updateCourse(courseId: string, course: CourseDTO): Promise<CourseCreateResponse> {
+        const doc = await this.courseModel.findByIdAndUpdate(courseId, course)
+        return { courseId: doc._id }
     }
 
-    getCourse(courseId: TCourseId): Promise<EditorCourseResponse> {
+    getCourse(courseId: string): Promise<EditorCourseResponse> {
         return Promise.all([
             this.lessonModel.find({ courseId })
                 .then(async (lessons) => {
@@ -114,7 +113,7 @@ export class EditorService {
         return { lessonId: lesson._id }
     }
 
-    getLesson(lessonId: TLessonId): Promise<LessonResponse> {
+    getLesson(lessonId: string): Promise<LessonResponse> {
         return Promise.all([
             this.lessonModel.findById(lessonId),
             this.pageModel.find({ lessonId })
@@ -146,16 +145,16 @@ export class EditorService {
         return { pageId: createdPage._id }
     }
 
-    async updatePage(pageId: TPageId, page: Page) {
-        await this.pageModel.findByIdAndUpdate(pageId, page)
-        return { pageId }
+    async updatePage(pageId: string, page: PageUpdateDTO) {
+        const doc = await this.pageModel.findByIdAndUpdate(pageId, page)
+        return { pageId: doc._id }
     }
 
-    getPage(pageId: TPageId) {
+    getPage(pageId: string) {
         return this.pageModel.findById(pageId)
     }
 
-    removePage(pageId) {
+    removePage(pageId: string) {
         return this.pageModel.findByIdAndRemove(pageId)
     }
 
