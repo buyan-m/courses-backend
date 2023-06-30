@@ -20,6 +20,8 @@ import {
     AnswerCorrectness
 } from './entities.types'
 
+import { TNotification } from '../Notification/notification.classes'
+
 import { AuthCheckResponse } from './auth.classes'
 import { Roles } from '../constants/general-roles'
 

@@ -1,18 +1,22 @@
 import {
-    Body, Controller, Put, Get
+    Body, Controller, Put, Get, Delete, Param
 } from '@nestjs/common'
 import { AdminService } from './admin.service'
 import { AuthService } from '../Auth/auth.service'
 import { EmailApproveDto } from '../types/admin.classes'
 import { Token } from '../utils/extractToken'
-import { throwUnauthorized } from '../utils/errors'
+import { throwForbidden, throwUnauthorized } from '../utils/errors'
 import { OkResponse } from '../utils/emptyResponse'
+import { DEV_MODE } from '../constants/dev-mode'
+import { ObjectIdValidationPipe } from '../utils/object-id'
+import { NotificationService } from '../Notification/notification.service'
 
 @Controller('/admin')
 export class AdminController {
     constructor(
         private readonly adminService: AdminService,
         private readonly authService: AuthService,
+        private readonly notificationService: NotificationService,
     ) {}
 
     @Get('fresh-email/list')
@@ -44,5 +48,21 @@ export class AdminController {
         }
 
         return this.adminService.getCoursesList(userId)
+    }
+
+    @Delete('notifications/:userId')
+    async deleteNotificationsForUser(@Token() token: string, @Param('userId', ObjectIdValidationPipe) userId: string) {
+        if (!DEV_MODE) {
+            throwForbidden()
+        }
+
+        const adminUserId = await this.authService.getUserId(token)
+        if (!adminUserId) {
+            throwUnauthorized()
+        }
+
+        await this.adminService.checkGrants(adminUserId)
+        await this.notificationService.deleteNotificationsForUser(userId)
+        return new OkResponse()
     }
 }

@@ -7,6 +7,7 @@ import { AdminModule } from './Admin/admin.module'
 import { RoleModule } from './Role/role.module'
 import { LearningModule } from './Learning/learning.module'
 import { ShareCodeModule } from './ShareCode/share-code.module'
+import { NotificationModule } from './Notification/notification.module'
 
 @Module({
     imports: [
@@ -17,7 +18,8 @@ import { ShareCodeModule } from './ShareCode/share-code.module'
         AdminModule,
         RoleModule,
         LearningModule,
-        ShareCodeModule
+        ShareCodeModule,
+        NotificationModule
     ]
 })
 export class AppModule {}
