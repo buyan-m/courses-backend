@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { ApiProperty } from '@nestjs/swagger'
 import {
     TCourseId,
@@ -34,8 +35,11 @@ import {
 import {
     CourseAndStudentDTO,
     TAnswerFeedback,
-    TUpdateFeedbackDTO
+    TUpdateFeedbackDTO,
+    DetailedStudentCourseInfo
 } from '../Learning/learning.classes'
+
+import { ShareCodeDTO } from '../ShareCode/share-code.classes'
 
 export class CourseCreateResponse {
     @ApiProperty({ type: String })

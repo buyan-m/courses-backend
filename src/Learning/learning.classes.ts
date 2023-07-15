@@ -1,12 +1,23 @@
 import { IsNotEmpty, IsString } from 'class-validator'
 import { ApiProperty } from '@nestjs/swagger'
-import { AnswerCorrectness, TUserId } from '../types/entities.types'
+import {
+    AnswerCorrectness, PageAnswers, Progress, TLessonId, TPageId, TUserId, User, TCourseId
+} from '../types/entities.types'
 
 export enum CourseRoles {
     teacher = 'teacher',
     student = 'student',
     visitor = 'visitor',
     owner = 'owner'
+}
+
+export type TCourseStudentsResponse = TCourseStudentsResponseItem[]
+
+export type TCourseStudentsResponseItem = {
+    name: string,
+    userId: TUserId,
+    courseId: TCourseId,
+    courseTitle: string
 }
 
 export class CourseAndStudentDTO {
@@ -57,4 +68,52 @@ export class LearningPageDTO {
     @IsString()
     @IsNotEmpty()
         pageId: string
+}
+
+export class LearningCourseDTO {
+    @IsString()
+    @IsNotEmpty()
+        teacherId: string
+
+    @IsString()
+    @IsNotEmpty()
+        studentId: string
+
+    @IsString()
+    @IsNotEmpty()
+        courseId: string
+}
+
+export type TGetTeacherStudentsInput = {
+    teacherId: TUserId
+
+    courseId?: string
+}
+
+export type TGetStudentDetailsInput = {
+    teacherId: TUserId
+
+    courseId: string
+
+    studentId: string,
+
+    onlyUnchecked?: boolean
+}
+
+export class DetailedStudentCourseInfo {
+    @ApiProperty({ type: () => Array })
+        answerPages: Pick<PageAnswers, '_id'|'checked'>[]
+
+    @ApiProperty({ type: () => User })
+        student: User
+
+    @ApiProperty()
+        progress: {
+        lessons: {
+            _id: TLessonId,
+            pages: { _id: TPageId }[]
+            name: string
+        }[],
+        progress: Progress[]
+    }
 }
