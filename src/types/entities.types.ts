@@ -7,11 +7,15 @@ import { CourseDTO } from './editor.classes'
 import {
     IsArray,
     IsBoolean,
-    IsNotEmpty, IsNotEmptyObject, IsNumber, IsObject, IsString, ValidateNested
+    IsNotEmpty,
+    IsNotEmptyObject,
+    IsNumber,
+    IsObject,
+    IsString,
+    ValidateNested
 } from 'class-validator'
 import { Type } from 'class-transformer'
 
-import { ShareCodeDTO } from '../ShareCode/share-code.classes'
 import { TeacherTypes } from '../constants/teacher-types'
 import { CourseRoles } from '../Learning/learning.classes'
 
@@ -102,9 +106,11 @@ export class CourseUpdateDTO extends CourseDTO {
 }
 
 export class EditorBlock {
+    @IsString()
     @ApiProperty()
         id: string
 
+    @IsString()
     @ApiProperty()
         type: string
 
@@ -150,6 +156,10 @@ export class Page {
     @ApiProperty()
     @IsNumber()
         position: number
+
+    @ApiProperty()
+    @IsBoolean()
+        requireManualChecking: boolean
 }
 
 export class PageViewerDTO extends Page {
@@ -283,6 +293,9 @@ export class AnswersDTO {
 }
 
 export class PageAnswers extends AnswersDTO {
+    @ApiProperty({ type: String })
+        _id: string
+
     @IsString()
     @ApiProperty({ type: String })
         studentId: string
@@ -291,6 +304,9 @@ export class PageAnswers extends AnswersDTO {
     @ApiProperty({ type: String })
         pageId: string
 
+    @IsBoolean()
+    @ApiProperty({ type: Boolean })
+        checked: boolean
 }
 
 export class PaginationInfo {

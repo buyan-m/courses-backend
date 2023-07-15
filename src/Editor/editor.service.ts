@@ -18,6 +18,7 @@ import {
 import { throwNotFound } from '../utils/errors'
 import { CourseCreateResponse } from '../types/outputs'
 import { TeacherTypes } from '../constants/teacher-types'
+import { MANUAL_CHECK_BLOCK_TYPES } from './editor.constants'
 
 @Injectable()
 export class EditorService {
@@ -129,8 +130,12 @@ export class EditorService {
 
     async createPage(page: PageCreateDTO, userId: TUserId) {
         const index = await this.pageModel.find({ lessonId: page.lessonId }).count()
+        const requireManualChecking = page.structure.blocks
+            .some((block) => MANUAL_CHECK_BLOCK_TYPES.includes(block.type))
+
         const createdPage = new this.pageModel({
             ...page,
+            requireManualChecking,
             position: index
         })
 

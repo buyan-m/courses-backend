@@ -8,7 +8,7 @@
     "scripts": {
         "build": "nest build",
         "build-types": "tsc --declaration --outFile ./declarations.ts --emitDeclarationOnly --experimentalDecorators ./src/types/outputs.ts ./src/types/inputs.ts",
-        "prepare-types": "ts-node ./scripts/build-types.ts && eslint types.d.ts --fix",
+        "prepare-types": "npm run build-types && ts-node ./scripts/build-types.ts && eslint types.d.ts --fix",
         "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
         "start": "nest start",
         "start:dev": "npm run build-types && npm run prepare-types && nest start --watch",

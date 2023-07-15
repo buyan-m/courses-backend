@@ -34,5 +34,6 @@ export const AnswerSchema = new mongoose.Schema({
         enum: Object.keys(AnswerStates),
         default: 'active'
     },
-    answers: [ TestAnswerSchema ]
+    answers: [ TestAnswerSchema ],
+    checked: Boolean
 })

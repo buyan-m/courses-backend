@@ -4,11 +4,11 @@ import {
 import { Token } from '../utils/extractToken'
 import { LearningService } from './learning.service'
 import {
-    CourseAndShareCodeDTO, CourseAndStudentDTO, TUpdateFeedbackDTO
+    CourseAndShareCodeDTO, CourseAndStudentDTO, DetailedStudentCourseInfo, TCourseStudentsResponse, TUpdateFeedbackDTO
 } from './learning.classes'
 import { AuthService } from '../Auth/auth.service'
 import {
-    AnswersDTO, PageAnswers, Student, TCourseId
+    AnswersDTO, PageAnswers, Student, TCourseId, User
 } from '../types/entities.types'
 import { ObjectIdValidationPipe } from '../utils/object-id'
 import { ApiResponse } from '@nestjs/swagger'
@@ -17,6 +17,7 @@ import { ShareCodeService } from '../ShareCode/share-code.service'
 import { NotificationService } from '../Notification/notification.service'
 import { FeedbackReceivedNotificationCreateDTO, NotificationTypes } from '../Notification/notification.classes'
 import { ViewerService } from '../Viewer/viewer.service'
+import { Query } from '@nestjs/common/decorators/http/route-params.decorator'
 
 @Controller('learning')
 export class LearningController {
@@ -32,25 +33,25 @@ export class LearningController {
     async inviteStudent(
         @Body() courseAndShareCodeDTO: CourseAndShareCodeDTO,
             @Token() token: string
-    ): Promise<OkResponse> {
+    ): Promise<User> {
         // проверить учитель ли этот пользователь
         const teacherId = await this.authService.getUserId(token)
-        const result = await this.shareCodeService.checkCode(courseAndShareCodeDTO.shareCode)
-        await this.learningService.inviteStudent(teacherId, {
-            userId: result.userId.toString(),
+        const checkedCode = await this.shareCodeService.checkCode(courseAndShareCodeDTO.shareCode)
+        const response = await this.learningService.inviteStudent(teacherId, {
+            userId: checkedCode.userId.toString(),
             courseId: courseAndShareCodeDTO.courseId
         })
 
         // Может быть асинхронной очередью в дальнейшем
         await this.notificationService.createNotification({
-            userId: result.userId.toString(),
+            userId: checkedCode.userId.toString(),
             type: NotificationTypes.courseInvitation,
             details: {
                 courseId: courseAndShareCodeDTO.courseId,
                 inviterId: teacherId.toString()
             }
         })
-        return new OkResponse()
+        return response
     }
 
     @Put('archive-student')
@@ -63,9 +64,33 @@ export class LearningController {
 
     @Get('students')
     @ApiResponse({ type: Student, isArray: true })
-    async getOwnStudents(@Token() token: string): Promise<Student[]> {
+    async getOwnStudents(@Token() token: string): Promise<TCourseStudentsResponse> {
         const teacherId = await this.authService.getUserId(token)
-        return this.learningService.getTeacherStudents(teacherId)
+        return this.learningService.getTeacherStudents({ teacherId })
+    }
+
+    @Get('students/:courseId')
+    @ApiResponse({ type: Student, isArray: true })
+    async getOwnCourseStudents(
+        @Token() token: string,
+            @Param('courseId', ObjectIdValidationPipe) courseId: string,
+    ): Promise<TCourseStudentsResponse> {
+        const teacherId = await this.authService.getUserId(token)
+        return this.learningService.getTeacherStudents({ teacherId, courseId })
+    }
+
+    @Get('students/:courseId/:studentId')
+    @ApiResponse({ type: DetailedStudentCourseInfo, isArray: true })
+    async getCourseStudentInfo(
+        @Token() token: string,
+            @Param('courseId', ObjectIdValidationPipe) courseId: string,
+            @Param('studentId', ObjectIdValidationPipe) studentId: string,
+            @Query('unchecked') onlyUnchecked: string
+    ): Promise<DetailedStudentCourseInfo> {
+        const teacherId = await this.authService.getUserId(token)
+        return this.learningService.getTeacherStudentDetails({
+            teacherId, courseId, studentId, onlyUnchecked: onlyUnchecked === '1'
+        })
     }
 
     @Put('become-teacher/:courseId')

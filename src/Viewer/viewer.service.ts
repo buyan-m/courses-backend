@@ -161,11 +161,18 @@ export class ViewerService {
     }
 
     async completeLesson(lessonId: string, userId: TUserId) {
-        await new this.progressModel({
+        const alreadyRecorded = await this.progressModel.exists({
             userId,
             objectId: lessonId,
             objectType: GrantObjectType.lesson
-        }).save()
+        })
+        if (!alreadyRecorded) {
+            await new this.progressModel({
+                userId,
+                objectId: lessonId,
+                objectType: GrantObjectType.lesson
+            }).save()
+        }
     }
 
     async getCourseIdByPageId(pageId: string) {
