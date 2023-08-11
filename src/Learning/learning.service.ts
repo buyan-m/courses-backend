@@ -147,7 +147,6 @@ export class LearningService {
             this.lessonModel.find({ courseId })
                 .select('_id name')
                 .then((lessons) => {
-                    console.log(pages, lessons)
                     return this.progressModel.find({
                         objectId: { $in: lessons.map(({ _id }) => _id) },
                         objectType: GrantObjectType.lesson,

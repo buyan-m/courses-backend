@@ -37,3 +37,4 @@ lerna-debug.log*
 
 declarations.d.ts
 types.d.ts
+.env

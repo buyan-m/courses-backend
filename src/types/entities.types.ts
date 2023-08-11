@@ -314,3 +314,11 @@ export class PaginationInfo {
     @ApiProperty({ type: Number })
         totalCount: number
 }
+
+export class EmailConfirmation {
+    email: string
+
+    code: string
+
+    validTill: Date
+}

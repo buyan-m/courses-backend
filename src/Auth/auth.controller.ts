@@ -1,22 +1,25 @@
 import {
-    Controller, Post, Get, Res, Body
+    Controller, Post, Get, Res, Body, Put
 } from '@nestjs/common'
 import { AuthService } from './auth.service'
 import { Response } from 'express'
 import { TOKEN_MAX_AGE } from '../constants/auth-token-age'
 import {
-    AuthCheckResponse, AuthDto, RegisterDto
+    AuthCheckResponse, AuthDto, ConfirmEmailDTO, RegisterDto, RequestConfirmEmailDTO
 } from '../types/auth.classes'
 import { RoleService } from '../Role/role.service'
 import { Token } from '../utils/extractToken'
 import { throwUnauthorized } from '../utils/errors'
 import { ApiResponse } from '@nestjs/swagger'
+import { MailerService } from 'src/Mailer/mailer.service'
+import { OkResponse } from 'src/utils/emptyResponse'
 
 @Controller()
 export class AuthController {
     constructor(
         private readonly authService: AuthService,
-        private readonly roleService: RoleService
+        private readonly roleService: RoleService,
+        private readonly mailerService: MailerService,
     ) {}
 
     @Post('/auth')
@@ -37,13 +40,31 @@ export class AuthController {
     @Post('/register')
     async register(@Body() body: RegisterDto, @Res() response: Response) {
         try {
-            const token = await this.authService.register(body.email.toLowerCase(), body.password, body.name)
+            const { token, confirmationCode } = await this.authService
+                .register({
+                    email: body.email.toLowerCase(), password: body.password, name: body.name
+                })
+
+            this.mailerService.sendEmailConfirmation({ to: body.email.toLowerCase(), code: confirmationCode })
             response.cookie('token', token, { httpOnly: true, maxAge: TOKEN_MAX_AGE })
             response.send({})
         } catch (e) {
-            response.statusCode = e.getStatus()
-            response.send(e.text)
+            response.statusCode = (e && e.getStatus && e.getStatus()) || 501
+            response.send({ error: e.text })
         }
+    }
+
+    @Put('/email-confirm')
+    async confirmEmail(@Body() { email, code }: ConfirmEmailDTO) {
+        await this.authService.confirmEmail({ email, code })
+        return new OkResponse()
+    }
+
+    @Post('/request-email-confirm')
+    async requestEmailConfirmation(@Body() { email }: RequestConfirmEmailDTO) {
+        const { code } = await this.authService.requestEmailConfirm({ email })
+        this.mailerService.sendEmailConfirmation({ to: email, code })
+        return new OkResponse()
     }
 
     @Get('/auth-check')

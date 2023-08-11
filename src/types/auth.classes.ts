@@ -48,3 +48,19 @@ export class AuthCheckResponse {
     })
         roles: Roles[]
 }
+
+export class ConfirmEmailDTO {
+    @ApiProperty()
+    @IsString()
+        email: string
+
+    @ApiProperty()
+    @IsString()
+        code: string
+}
+
+export class RequestConfirmEmailDTO {
+    @ApiProperty()
+    @IsString()
+        email: string
+}

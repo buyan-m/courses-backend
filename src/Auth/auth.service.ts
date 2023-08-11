@@ -1,14 +1,27 @@
+import { randomBytes } from 'node:crypto'
 import { Inject, Injectable } from '@nestjs/common'
 import { Model } from 'mongoose'
 import {
-    Auth, Role, Token, User
+    Auth, Role, Token, User, EmailConfirmation
 } from '../types/entities.types'
 import * as bcrypt from 'bcrypt'
 import { TOKEN_MAX_AGE } from '../constants/auth-token-age'
 import { Roles } from '../constants/general-roles'
-import { throwUnauthorized } from '../utils/errors'
+import { MAX_CONFIRM_EMAILS } from '../constants/max-confirm-emails'
+import { throwForbidden, throwUnauthorized } from '../utils/errors'
+import { EMAIL_CONFIRMATION_MAX_AGE } from '../constants/email-confirmation-age'
+import { RegisterDto } from '../types/auth.classes'
 
 const HASH_ROUNDS = 3
+
+type TConfirmEmailParams = {
+    email: string,
+    code: string
+}
+
+function generateEmailConfirmationCode() {
+    return randomBytes(8).toString('hex')
+}
 
 @Injectable()
 export class AuthService {
@@ -21,6 +34,8 @@ export class AuthService {
         private userModel: Model<User>,
         @Inject('ROLE_MODEL')
         private roleModel: Model<Role>,
+        @Inject('EMAIL_CONFIRMATION_MODEL')
+        private emailConfirmationModel: Model<EmailConfirmation>,
     ) {}
 
     async auth(email: string, password: string) {
@@ -46,14 +61,23 @@ export class AuthService {
             })})
     }
 
-    async register(email: string, password: string, name: string) {
+    async register({
+        email, password, name
+    }: RegisterDto) {
         // check email validity
         const auth = await this.authModel.findOne({ email })
+
         if (!auth) {
             const hash = await bcrypt.hash(password, HASH_ROUNDS)
             const user = await new this.userModel({ name }).save()
             const token = await bcrypt.hash(email, hash)
-            await Promise.all([
+            const [ emailConfirmation ] = await Promise.all([
+                new this.emailConfirmationModel({
+                    email,
+                    code: generateEmailConfirmationCode(),
+                    validTill: new Date(Date.now() + (EMAIL_CONFIRMATION_MAX_AGE * 1000))
+                }).save(),
+
                 new this.authModel({
                     email,
                     password: hash,
@@ -72,10 +96,67 @@ export class AuthService {
                 }).save()
             ])
 
-            return token
+            return { token, confirmationCode: emailConfirmation.code }
         }
 
         throwUnauthorized()
+    }
+
+    async confirmEmail({ email, code }: TConfirmEmailParams) {
+        const auth = await this.authModel.findOne({ email })
+
+        if (!auth) {
+            throwUnauthorized()
+        }
+
+        const grant = await this.roleModel.findOne({ userId: auth.userId, role: Roles.user })
+
+        if (grant) {
+            return
+        }
+
+        const record = await this.emailConfirmationModel.findOne({ email, code })
+        if (record && record.validTill > new Date()) {
+            return this.roleModel.findOneAndUpdate({
+                userId: auth.userId,
+                role: Roles.guest
+            }, {
+                userId: auth.userId,
+                role: Roles.user
+            })
+        }
+
+        throwUnauthorized()
+    }
+
+    async requestEmailConfirm({ email }: {email: string}) {
+        const auth = await this.authModel.findOne({ email })
+        const grant = await this.roleModel.findOne({ userId: auth.userId, role: Roles.user })
+
+        if (!auth) {
+            throwUnauthorized()
+        }
+
+        if (grant) {
+            throwForbidden()
+        }
+
+        const sent = await this.emailConfirmationModel.find({ email }).count()
+
+        if (sent > MAX_CONFIRM_EMAILS) {
+            throwForbidden()
+        }
+
+        const record = await new this.emailConfirmationModel({
+            email,
+            code: generateEmailConfirmationCode(),
+            validTill: new Date(Date.now() + (EMAIL_CONFIRMATION_MAX_AGE * 1000))
+        }).save()
+
+        return {
+            email: record.email,
+            code: record.code
+        }
     }
 
     async checkAuth(token: string) {
