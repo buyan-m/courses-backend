@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common'
+import { ThrottlerModule } from '@nestjs/throttler'
 import { EditorModule } from './Editor/editor.module'
 import { ViewerModule } from './Viewer/viewer.module'
 import { AuthModule } from './Auth/auth.module'
@@ -19,7 +20,11 @@ import { NotificationModule } from './Notification/notification.module'
         RoleModule,
         LearningModule,
         ShareCodeModule,
-        NotificationModule
+        NotificationModule,
+        ThrottlerModule.forRoot({
+            ttl: 60,
+            limit: 10
+        })
     ]
 })
 export class AppModule {}

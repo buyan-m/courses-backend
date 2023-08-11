@@ -7,7 +7,7 @@ module.exports = {
     rules: {
         indent: [ 'error', 4 ],
         semi: [ 'error', 'never' ],
-        'max-len': [ 'error', 120 ],
+        'max-len': [ 'error', { code: 120, ignoreStrings: true } ],
         'linebreak-style': [ 'error', 'unix' ],
         'object-curly-spacing': [ 'error', 'always' ],
         'object-curly-newline': [
