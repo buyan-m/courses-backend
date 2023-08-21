@@ -322,3 +322,8 @@ export class EmailConfirmation {
 
     validTill: Date
 }
+
+export type TPaginated<T> = {
+    items: T[],
+    count: number
+}
