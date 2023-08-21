@@ -1,11 +1,11 @@
 import {
-    Controller, Post, Get, Res, Body, Put
+    Controller, Post, Get, Res, Body, HttpStatus, Put
 } from '@nestjs/common'
 import { AuthService } from './auth.service'
 import { Response } from 'express'
 import { TOKEN_MAX_AGE } from '../constants/auth-token-age'
 import {
-    AuthCheckResponse, AuthDto, ConfirmEmailDTO, RegisterDto, RequestConfirmEmailDTO
+    AuthCheckResponse, AuthDto, ConfirmEmailDTO, RegisterDto, RequestConfirmEmailDTO, UserInfo
 } from '../types/auth.classes'
 import { RoleService } from '../Role/role.service'
 import { Token } from '../utils/extractToken'
@@ -32,8 +32,8 @@ export class AuthController {
             if (!e) {
                 throwUnauthorized()
             }
-            response.statusCode = e.getStatus()
-            response.send(e.text)
+            response.statusCode = e.getStatus && e.getStatus() || HttpStatus.UNAUTHORIZED
+            response.send({ errors: [ e.text ] })
         }
     }
 
@@ -49,8 +49,8 @@ export class AuthController {
             response.cookie('token', token, { httpOnly: true, maxAge: TOKEN_MAX_AGE })
             response.send({})
         } catch (e) {
-            response.statusCode = (e && e.getStatus && e.getStatus()) || 501
-            response.send({ error: e.text })
+            response.statusCode = (e.getStatus && e.getStatus()) || 501
+            response.send({ errors: [ e.text ] })
         }
     }
 
@@ -76,6 +76,13 @@ export class AuthController {
             userId,
             roles: roles.map(({ role }) => role)
         }
+    }
+
+    @Get('/me')
+    @ApiResponse({ type: UserInfo })
+    async getCurrentUserInfo(@Token() token: string) {
+        const userId = await this.authService.checkAuth(token)
+        return this.authService.getUserInfo(userId)
     }
 
     @Get('/logout')

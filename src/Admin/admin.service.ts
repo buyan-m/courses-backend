@@ -6,6 +6,8 @@ import {
 import { CourseDTO } from '../types/editor.classes'
 import { Roles } from '../constants/general-roles'
 import { throwForbidden, throwNotFound } from '../utils/errors'
+import { IssueModelClass } from '../Common/common.classes'
+import { AdminIssuesResponse, TGetIssuesParams } from './admin.classes'
 
 @Injectable()
 export class AdminService {
@@ -16,6 +18,8 @@ export class AdminService {
         private roleModel: Model<Role>,
         @Inject('COURSE_MODEL')
         private courseModel: Model<CourseDTO>,
+        @Inject('ISSUE_MODEL')
+        private issueModel: Model<IssueModelClass>,
     ) {}
 
     async checkGrants(userId: string | TUserId) {
@@ -56,5 +60,16 @@ export class AdminService {
         await this.checkGrants(userId)
 
         return this.courseModel.find({})
+    }
+
+    async getIssues({ offset = 0 }: TGetIssuesParams):Promise<AdminIssuesResponse> {
+        return {
+            items: await this.issueModel.find({})
+                .sort({ cdate: -1 })
+                .skip(offset)
+                .limit(20)
+                .populate('user', 'name'),
+            count: await this.issueModel.find({}).count()
+        }
     }
 }

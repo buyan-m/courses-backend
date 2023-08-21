@@ -13,6 +13,7 @@ import { studentProvider } from './student.db.provider'
 import { answerProvider } from './answer.db.provider'
 import { shareCodeProvider } from './share-code.db.provider'
 import { emailConfirmationProvider } from './email-confirmation.db.provider'
+import { issueProvider } from './issue.db.provider'
 
 @Module({
     exports: [
@@ -29,7 +30,8 @@ import { emailConfirmationProvider } from './email-confirmation.db.provider'
         studentProvider,
         answerProvider,
         shareCodeProvider,
-        emailConfirmationProvider
+        emailConfirmationProvider,
+        issueProvider
     ],
     providers: [
         databaseProvider,
@@ -46,7 +48,8 @@ import { emailConfirmationProvider } from './email-confirmation.db.provider'
         studentProvider,
         answerProvider,
         shareCodeProvider,
-        emailConfirmationProvider
+        emailConfirmationProvider,
+        issueProvider
     ]
 })
 export class DBModule {}

@@ -26,6 +26,9 @@ import { TNotification } from '../Notification/notification.classes'
 import { AuthCheckResponse } from './auth.classes'
 import { Roles } from '../constants/general-roles'
 
+import { IssueModelClass } from '../Common/common.classes'
+import { AdminIssuesResponse } from '../Admin/admin.classes'
+
 import {
     EditorBlockType,
     TEditorBlockVideo,

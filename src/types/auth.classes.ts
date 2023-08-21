@@ -64,3 +64,18 @@ export class RequestConfirmEmailDTO {
     @IsString()
         email: string
 }
+
+export class UserInfo {
+    @ApiProperty()
+    @IsString()
+        email: string
+
+    @ApiProperty()
+    @IsString()
+        name: string
+
+    @ApiProperty({
+        enum: [ Object.values(Roles) ], isArray: true, type: String
+    })
+        roles: Roles[]
+}

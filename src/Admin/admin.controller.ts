@@ -1,5 +1,5 @@
 import {
-    Body, Controller, Put, Get, Delete, Param
+    Body, Controller, Put, Get, Delete, Param, Query
 } from '@nestjs/common'
 import { AdminService } from './admin.service'
 import { AuthService } from '../Auth/auth.service'
@@ -64,5 +64,15 @@ export class AdminController {
         await this.adminService.checkGrants(adminUserId)
         await this.notificationService.deleteNotificationsForUser(userId)
         return new OkResponse()
+    }
+
+    @Get('issues')
+    async getIssues(@Token() token: string, @Query('offset') offset: string) {
+        const userId = await this.authService.getUserId(token)
+        if (!userId) {
+            throwUnauthorized()
+        }
+        await this.adminService.checkGrants(userId)
+        return this.adminService.getIssues({ offset: offset ? parseInt(offset) : undefined })
     }
 }

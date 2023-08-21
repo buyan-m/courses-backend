@@ -12,12 +12,21 @@ import {
     ParseFilePipe,
     MaxFileSizeValidator,
     FileTypeValidator,
-    StreamableFile
+    StreamableFile,
+    Put,
+    Body
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { promisify } from 'util'
 import { throwForbidden } from '../utils/errors'
 import { DEV_MODE } from '../constants/dev-mode'
+import { STRICT_MODE } from '../constants/strict-mode'
+import { Token } from '../utils/extractToken'
+import { IssueReport } from './common.classes'
+import { AuthService } from '../Auth/auth.service'
+import { Throttle } from '@nestjs/throttler'
+import { CommonService } from './common.service'
+import { OkResponse } from 'src/utils/emptyResponse'
 
 const asyncWriteFile = promisify(writeFile)
 function generateImageName() {
@@ -26,6 +35,12 @@ function generateImageName() {
 
 @Controller()
 export class CommonController {
+
+    constructor(
+        private readonly authService: AuthService,
+        private readonly commonService: CommonService
+    ) {}
+
     @Post('image-upload')
     @UseInterceptors(FileInterceptor('image') as unknown as NestInterceptor)
     async imageUpload(@UploadedFile(
@@ -69,5 +84,20 @@ export class CommonController {
             return new StreamableFile(file)
         }
         throwForbidden()
+    }
+
+    @Throttle(1, 120)
+    @Put('issue-report')
+    async issueReport(@Body() body: IssueReport, @Token() token: string) {
+        if (!token && STRICT_MODE) {
+            throwForbidden()
+        }
+        const userId = await this.authService.getUserId(token)
+        if (!userId && STRICT_MODE) {
+            throwForbidden()
+        }
+
+        await this.commonService.createIssue({ ...body, userId: userId.toString() })
+        return new OkResponse()
     }
 }

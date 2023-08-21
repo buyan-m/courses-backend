@@ -2,7 +2,7 @@ import { randomBytes } from 'node:crypto'
 import { Inject, Injectable } from '@nestjs/common'
 import { Model } from 'mongoose'
 import {
-    Auth, Role, Token, User, EmailConfirmation
+    Auth, Role, Token, User, EmailConfirmation, TUserId
 } from '../types/entities.types'
 import * as bcrypt from 'bcrypt'
 import { TOKEN_MAX_AGE } from '../constants/auth-token-age'
@@ -10,7 +10,7 @@ import { Roles } from '../constants/general-roles'
 import { MAX_CONFIRM_EMAILS } from '../constants/max-confirm-emails'
 import { throwForbidden, throwUnauthorized } from '../utils/errors'
 import { EMAIL_CONFIRMATION_MAX_AGE } from '../constants/email-confirmation-age'
-import { RegisterDto } from '../types/auth.classes'
+import { RegisterDto, UserInfo } from '../types/auth.classes'
 
 const HASH_ROUNDS = 3
 
@@ -182,6 +182,20 @@ export class AuthService {
 
     async getUserId(token: string) {
         const session = await this.tokenModel.findOne({ token })
-        return session.userId
+        return session && session.userId
+    }
+
+    getUserInfo(userId: TUserId): Promise<UserInfo> {
+        return Promise.all([
+            this.authModel.findOne({ userId }),
+            this.roleModel.find({ userId }),
+            this.userModel.findById(userId)
+        ]).then(([ auth, role, user ]) => {
+            return {
+                email: auth.email,
+                roles: role.map(({ role }) => role),
+                name: user.name
+            }
+        })
     }
 }
