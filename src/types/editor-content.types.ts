@@ -5,7 +5,10 @@ export enum EditorBlockType {
     'heading' = 'heading',
     'audio' = 'audio',
     'video' = 'video',
-    'image' = 'image',
+    'image' = 'image'
+}
+
+export enum EditorBlockExerciseType {
     'radio' = 'radio',
     'checkbox' = 'checkbox',
     'input' = 'input'
@@ -59,31 +62,26 @@ export type TEditorBlockVideo = TAbstractBlock & {
 }
 
 export type TEditorBlockRadio = TAbstractBlock & {
-    type: EditorBlockType.radio,
+    type: EditorBlockExerciseType.radio,
     data: {
         options: Option[]
     }
 }
 
 export type TEditorBlockCheckbox = TAbstractBlock & {
-    type: EditorBlockType.checkbox,
+    type: EditorBlockExerciseType.checkbox,
     data: {
         options: Option[]
     }
 }
 
 export type TEditorBlockInput = TAbstractBlock & {
-    type: EditorBlockType.input,
+    type: EditorBlockExerciseType.input,
     data: {
-        text: string
+        answers: string[]
     }
-}
-
-export type TEditorBlockUnknown = TAbstractBlock & {
-    type: EditorBlockType,
-    data: Record<string, unknown>
 }
 
 export type TEditorBlock = TEditorBlockParagraph | TEditorBlockHeading | TEditorBlockImage |
 TEditorBlockAudio | TEditorBlockVideo | TEditorBlockRadio | TEditorBlockCheckbox |
-TEditorBlockInput | TEditorBlockUnknown
+TEditorBlockInput

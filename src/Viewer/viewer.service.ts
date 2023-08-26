@@ -22,6 +22,7 @@ import { throwNotFound } from '../utils/errors'
 import { CourseRoles } from '../Learning/learning.classes'
 import { StudentTypes } from '../constants/student-types'
 import { TeacherTypes } from '../constants/teacher-types'
+import { EditorBlockExerciseType } from '../types/editor-content.types'
 
 @Injectable()
 export class ViewerService {
@@ -100,11 +101,56 @@ export class ViewerService {
         })
     }
 
-    getPage(pageId: string, userId: TUserId): Promise<PageViewerDTO> {
-        const pagePromise = this.pageModel.findById(pageId).exec()
+    async getPage(pageId: string, userId: TUserId): Promise<PageViewerDTO> {
+        const pagePromise = this.pageModel.findById(pageId)
+            .populate<{ lessonId: LessonUpdateDTO }>('lessonId', '_id courseId')
+            .exec()
 
         return Promise.all([
-            pagePromise,
+            pagePromise
+                .then(async (page) => {
+                    if (page.isAnswersVisible) return page.toObject()
+
+                    const isTeacher = await this.teacherModel.findOne({
+                        courseId: page.lessonId.courseId, userId, type: TeacherTypes.active
+                    })
+                    if (isTeacher) return page.toObject()
+
+                    const blocks = page.structure.blocks.map((block) => {
+                        if (block.type === EditorBlockExerciseType.radio
+                                || block.type === EditorBlockExerciseType.checkbox
+                        ) {
+                            if ('options' in block.data) {
+                                return {
+                                    ...block,
+                                    data: {
+                                        options: block.data.options.map((option) => {
+                                            const temp = { ...option }
+                                            delete temp.isCorrect
+                                            return temp
+                                        })
+                                    }
+                                }
+                            }
+                        }
+
+                        if (block.type === EditorBlockExerciseType.input) {
+                            const temp = { ...block }
+                            delete temp.data.answers
+                            return temp
+
+                        }
+
+                        return block
+                    })
+                    return {
+                        ...page.toObject(),
+                        structure: {
+                            ...page.structure,
+                            blocks
+                        }
+                    }
+                }),
             pagePromise
                 .then((page) => {
                     return this.pageModel.find({ lessonId: page.lessonId }).count()
@@ -117,7 +163,7 @@ export class ViewerService {
             })
         ]).then(([ page, length, progress ]) => {
             return {
-                ...page.toObject(),
+                ...page,
                 nextPageAvailable: length - 1 > page.position,
                 progress: { checked: !!progress }
             }
