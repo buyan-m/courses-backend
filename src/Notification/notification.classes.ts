@@ -70,6 +70,8 @@ export class FeedbackReceivedNotification extends AbstractProductNotification {
 
 export type TGetNotificationsFilter = {
     userId: TUserId,
+    offset: number,
+    limit: number,
 }
 
 class AbstractCreateNotificationDTO {

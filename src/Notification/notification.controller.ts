@@ -1,5 +1,5 @@
 import {
-    Controller, Get, Param, Put
+    Controller, Get, Param, Put, Query
 } from '@nestjs/common'
 import { Token } from '../utils/extractToken'
 import { AuthService } from '../Auth/auth.service'
@@ -19,11 +19,17 @@ export class NotificationController {
     @Get('')
     @ApiResponse({ type: NotificationsResponse })
     async getNotifications(
-        @Token() token: string
+        @Token() token: string,
+            @Query('offset') offset: string,
+            @Query('limit') limit: string
     ): Promise<NotificationsResponse> {
         const userId = await this.authService.getUserId(token)
 
-        return this.notificationsService.getNotifications({ userId })
+        return this.notificationsService.getNotifications({
+            userId,
+            offset: parseInt(offset) || 0,
+            limit: parseInt(limit) || 10
+        })
     }
 
     @Put('read-all')
