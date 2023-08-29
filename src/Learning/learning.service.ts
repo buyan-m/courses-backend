@@ -128,7 +128,7 @@ export class LearningService {
         }
 
         const pages = await this.pageModel
-            .find({ courseId }).select('_id lessonId')
+            .find({ courseId }).select('_id lessonId name')
 
         const answerModelFilter: FilterQuery<PageAnswers> = {
             studentId,
