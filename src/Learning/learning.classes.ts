@@ -111,7 +111,7 @@ export class DetailedStudentCourseInfo {
         progress: {
         lessons: {
             _id: TLessonId,
-            pages: { _id: TPageId }[]
+            pages: { _id: TPageId, name: string }[]
             name: string
         }[],
         progress: Progress[]
