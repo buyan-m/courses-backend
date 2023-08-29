@@ -33,7 +33,7 @@ export class AuthController {
                 throwUnauthorized()
             }
             response.statusCode = e.getStatus && e.getStatus() || HttpStatus.UNAUTHORIZED
-            response.send({ errors: [ e.text ] })
+            response.send({ errors: [ e.text || e.response ] })
         }
     }
 
@@ -50,7 +50,7 @@ export class AuthController {
             response.send({})
         } catch (e) {
             response.statusCode = (e.getStatus && e.getStatus()) || 501
-            response.send({ errors: [ e.text ] })
+            response.send({ errors: [ e.text || e.response ] })
         }
     }
 
