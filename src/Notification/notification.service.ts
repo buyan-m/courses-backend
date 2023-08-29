@@ -17,8 +17,6 @@ import { TUserId } from '../types/entities.types'
 import { DEV_MODE } from '../constants/dev-mode'
 import { throwForbidden } from '../utils/errors'
 
-const NOTIFICATIONS_LIMIT_PER_PAGE = 3
-
 @Injectable()
 export class NotificationService {
     constructor(
@@ -32,13 +30,16 @@ export class NotificationService {
         private feedbackReceivedNotificationModel: Model<FeedbackReceivedNotification['details']>
     ) {}
 
-    async getNotifications({ userId }: TGetNotificationsFilter): Promise<NotificationsResponse> {
+    async getNotifications({
+        userId, offset, limit
+    }: TGetNotificationsFilter): Promise<NotificationsResponse> {
         const response = await this.notificationModel
             .aggregate([ { $match: { user: userId } } ])
             .facet({
                 notifications: [
                     { $sort: { cdate: -1 } },
-                    { $limit: NOTIFICATIONS_LIMIT_PER_PAGE },
+                    { $skip: offset },
+                    { $limit: limit },
                     {
                         $lookup: {
                             from: 'users', localField: 'user', foreignField: '_id', as: 'user'
