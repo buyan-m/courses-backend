@@ -15,3 +15,7 @@ export function throwUnauthorized() {
 export function throwUnprocessable(details: string) {
     throw new HttpException(`Error: Unprocessable Content: ${details}`, HttpStatus.UNPROCESSABLE_ENTITY)
 }
+
+export function throwInternalError() {
+    throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR)
+}

@@ -14,6 +14,7 @@ import { answerProvider } from './answer.db.provider'
 import { shareCodeProvider } from './share-code.db.provider'
 import { emailConfirmationProvider } from './email-confirmation.db.provider'
 import { issueProvider } from './issue.db.provider'
+import { storageProvider } from './storage.db.provider'
 
 @Module({
     exports: [
@@ -31,7 +32,8 @@ import { issueProvider } from './issue.db.provider'
         answerProvider,
         shareCodeProvider,
         emailConfirmationProvider,
-        issueProvider
+        issueProvider,
+        storageProvider
     ],
     providers: [
         databaseProvider,
@@ -49,7 +51,8 @@ import { issueProvider } from './issue.db.provider'
         answerProvider,
         shareCodeProvider,
         emailConfirmationProvider,
-        issueProvider
+        issueProvider,
+        storageProvider
     ]
 })
 export class DBModule {}

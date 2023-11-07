@@ -39,9 +39,15 @@ export class AdminService {
             .then((auth) => ({ email: auth.email, role: role.role }))))
     }
 
-    async approveEmail(userId: TUserId, email: string) {
-        await this.checkGrants(userId)
+    async getUserList(): Promise<{ email: string, role: Roles }[] | string> {
+        const roles = await this.roleModel.find({ role: Roles.guest })
+        return Promise.all(roles.map((role) => this.authModel
+            .findOne({ userId: role.userId })
+            .select('email')
+            .then((auth) => ({ email: auth.email, role: role.role }))))
+    }
 
+    async approveEmail(userId: TUserId, email: string) {
         const auth = await this.authModel.findOne({ email })
         if (!auth || !auth.userId) {
             throwNotFound()
@@ -56,9 +62,7 @@ export class AdminService {
         })
     }
 
-    async getCoursesList(userId: TUserId):Promise<CourseUpdateDTO[]> {
-        await this.checkGrants(userId)
-
+    async getCoursesList():Promise<CourseUpdateDTO[]> {
         return this.courseModel.find({})
     }
 
@@ -71,5 +75,9 @@ export class AdminService {
                 .populate('user', 'name'),
             count: await this.issueModel.find({}).count()
         }
+    }
+
+    async getUsers() {
+        return {}
     }
 }
