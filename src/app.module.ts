@@ -9,6 +9,7 @@ import { RoleModule } from './Role/role.module'
 import { LearningModule } from './Learning/learning.module'
 import { ShareCodeModule } from './ShareCode/share-code.module'
 import { NotificationModule } from './Notification/notification.module'
+import { StorageModule } from './Storage/storage.module'
 
 @Module({
     imports: [
@@ -21,6 +22,7 @@ import { NotificationModule } from './Notification/notification.module'
         LearningModule,
         ShareCodeModule,
         NotificationModule,
+        StorageModule,
         ThrottlerModule.forRoot({
             ttl: 60,
             limit: 10

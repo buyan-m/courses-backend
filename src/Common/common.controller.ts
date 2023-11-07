@@ -1,12 +1,10 @@
 import { randomBytes } from 'node:crypto'
-import { writeFile, createReadStream } from 'node:fs'
 import { resolve } from 'node:path'
 import type { NestInterceptor } from '@nestjs/common'
 import {
     Controller,
     Post,
     Get,
-    Param,
     UseInterceptors,
     UploadedFile,
     ParseFilePipe,
@@ -17,7 +15,6 @@ import {
     Body
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
-import { promisify } from 'util'
 import { throwForbidden } from '../utils/errors'
 import { DEV_MODE } from '../constants/dev-mode'
 import { STRICT_MODE } from '../constants/strict-mode'
@@ -25,32 +22,43 @@ import { Token } from '../utils/extractToken'
 import { IssueReport } from './common.classes'
 import { AuthService } from '../Auth/auth.service'
 import { Throttle } from '@nestjs/throttler'
+import { createReadStream } from 'node:fs'
 import { CommonService } from './common.service'
-import { OkResponse } from 'src/utils/emptyResponse'
-
-const asyncWriteFile = promisify(writeFile)
-function generateImageName() {
-    return randomBytes(15).toString('hex') + '.jpg'
-}
+import { OkResponse } from '../utils/emptyResponse'
+import { StorageService } from '../Storage/storage.service'
+import { RoleService } from '../Role/role.service'
+import { Roles } from '../constants/general-roles'
 
 @Controller()
 export class CommonController {
 
     constructor(
         private readonly authService: AuthService,
-        private readonly commonService: CommonService
+        private readonly roleService: RoleService,
+        private readonly commonService: CommonService,
+        private readonly storageService: StorageService
     ) {}
 
     @Post('image-upload')
     @UseInterceptors(FileInterceptor('image') as unknown as NestInterceptor)
-    async imageUpload(@UploadedFile(
+    async imageUpload(
+    @UploadedFile(
         new ParseFilePipe({
             validators: [
                 new MaxFileSizeValidator({ maxSize: 500000 }),
                 new FileTypeValidator({ fileType: 'image/jpeg' })
             ]
         }),
-    ) file: Express.Multer.File) {
+    ) file: Express.Multer.File,
+        @Token() token: string
+    ) {
+        const userId = await this.authService.checkAuth(token)
+        const roles = await this.roleService.getUserRoles(userId)
+
+        if (roles.some(({ role }) => role === Roles.guest || role === Roles.banned)) {
+            throwForbidden()
+        }
+
         const EditorjsFormat = {
             success: 1,
             file: {
@@ -58,18 +66,11 @@ export class CommonController {
                 // ... and any additional fields you want to store, such as width, height, color, extension, etc
             }
         }
-        const name = generateImageName()
-        await asyncWriteFile(resolve(__dirname, `../../uploads/${name}`), file.buffer)
+        const url = await this.storageService.uploadImage({ file: file, userId })
         // save image relation to page
-        EditorjsFormat.file.url = `/api/uploads/${name}`
+        EditorjsFormat.file.url = url
 
         return EditorjsFormat
-    }
-
-    @Get('uploads/:filename')
-    getImage(@Param('filename') filename: string) {
-        const file = createReadStream(resolve(__dirname, `../../uploads/${filename}`))
-        return new StreamableFile(file)
     }
 
     @Get('health-check')
