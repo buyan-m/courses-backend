@@ -46,7 +46,7 @@ export class AuthController {
                 })
 
             this.mailerService.sendEmailConfirmation({ to: body.email.toLowerCase(), code: confirmationCode })
-            response.cookie('token', token, { httpOnly: true, maxAge: TOKEN_MAX_AGE })
+            response.cookie('token', token, { httpOnly: true, maxAge: TOKEN_MAX_AGE * 1000 })
             response.send({})
         } catch (e) {
             response.statusCode = (e.getStatus && e.getStatus()) || 501
@@ -71,7 +71,9 @@ export class AuthController {
     @ApiResponse({ type: AuthCheckResponse })
     async checkAuth(@Token() token: string) {
         const userId = await this.authService.checkAuth(token)
+
         const roles = await this.roleService.getUserRoles(userId)
+
         return {
             userId,
             roles: roles.map(({ role }) => role)

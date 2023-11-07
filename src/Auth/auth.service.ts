@@ -48,7 +48,7 @@ export class AuthService {
         return new Promise((resolve, reject) => {
             bcrypt.compare(password, auth.password, async (err, result) => {
                 if (result) {
-                    const token = await bcrypt.hash(email, auth.password)
+                    const token = await bcrypt.hash(`${email}${Date.now()}`, auth.password)
                     await new this.tokenModel({
                         token,
                         userId: auth.userId,
@@ -70,7 +70,7 @@ export class AuthService {
         if (!auth) {
             const hash = await bcrypt.hash(password, HASH_ROUNDS)
             const user = await new this.userModel({ name }).save()
-            const token = await bcrypt.hash(email, hash)
+            const token = await bcrypt.hash(`${email}${Date.now()}`, hash)
             const [ emailConfirmation ] = await Promise.all([
                 new this.emailConfirmationModel({
                     email,
@@ -163,13 +163,14 @@ export class AuthService {
         if (!token) {
             throwUnauthorized()
         }
+
         const session = await this.tokenModel.findOne({ token })
 
         if (!session) {
             throwUnauthorized()
         }
         if (session.validTill < new Date()) {
-            session.deleteOne()
+            await session.deleteOne()
             throwUnauthorized()
         }
 
